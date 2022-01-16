@@ -83,23 +83,24 @@ WSGI_APPLICATION = 'auth_system.wsgi.application'
 
 DATABASES = {
     'default': {
-        
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     },
     'auth_db' : {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     },
-    'hr_db': {
+    'fpl_db': {
         'ENGINE': 'django.db.backends.oracle',
         'NAME': 'orcl',
-        'USER': 'hr',
-        'PASSWORD': 'hr',
+        'USER': 'fpl',
+        'PASSWORD': '1234',
         'HOST': 'localhost',
         'PORT': '1521',
     },
 }
 
-DATABASE_ROUTERS = ['routers.db_routers.AuthRouter', 'routers.db_routers.HRDBRouter']
+DATABASE_ROUTERS = ['routers.db_routers.AuthRouter', 'routers.db_routers.FPLDBRouter']
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators

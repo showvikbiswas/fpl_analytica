@@ -1,13 +1,34 @@
 import React from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+
+const getData = async () => {
+  const config = {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  };
+
+  const res = await axios.get(
+    `${process.env.REACT_APP_API_URL}/api/employee/100`,
+    config
+  );
+
+  console.log(res);
+};
 
 const PickTeam = () => {
+  useEffect(() => {
+    getData();
+  }, []);
+
   return (
     <div class="d-flex justify-content-center">
       <div className="p-2 flex-grow-2">
         <table class="table table-striped">
           <thead>
             <tr>
-              <th scope="col">Players</th>
+              <th scope="col">Players </th>
               <th scope="col">Position</th>
               <th scope="col">Gameweek Points</th>
               <th scope="col">Total Points</th>

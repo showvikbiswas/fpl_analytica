@@ -10,6 +10,8 @@ import Layout from "./hocs/Layout";
 import { Provider } from "react-redux";
 import store from "./store";
 import PickTeam from "./containers/PickTeam";
+import CreateProfile from "./containers/CreateProfile";
+import PrivateRoute from "./hocs/PrivateRoute";
 
 const App = () => {
   return (
@@ -25,6 +27,7 @@ const App = () => {
               path="/password/reset/confirm/:uid/:token"
               element={<ResetPasswordConfirm />}
             />
+            <Route path="/create-profile" element={<CreateProfile />} />
             <Route path="/activate/:uid/:token" element={<Activate />} />
             <Route path="/my-team" element={<PickTeam />} />
           </Routes>

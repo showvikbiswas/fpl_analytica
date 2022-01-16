@@ -49,7 +49,7 @@ const Navbar = ({ logout, isAuthenticated }) => {
         </li>
 
         <li className="nav-item">
-          <Link className="nav-link" to="#!" onClick={logout}>
+          <Link className="nav-link" to="/" onClick={logout}>
             Logout
           </Link>
         </li>

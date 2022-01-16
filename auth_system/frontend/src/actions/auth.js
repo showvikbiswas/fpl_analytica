@@ -18,6 +18,24 @@ import {
   LOGOUT,
 } from "./types";
 
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      // Does this cookie string begin with the name we want?
+      if (cookie.substring(0, name.length + 1) === name + "=") {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+const csrftoken = getCookie("csrftoken");
+
 export const checkAuthenticated = () => async (dispatch) => {
   if (localStorage.getItem("access")) {
     const config = {
@@ -134,6 +152,14 @@ export const signup =
     };
 
     const body = JSON.stringify({ name, email, password, re_password });
+    const dbEntryBody = JSON.stringify({ name, email });
+
+    const dbConfig = {
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken,
+      },
+    };
 
     try {
       const res = await axios.post(
@@ -142,11 +168,18 @@ export const signup =
         config
       );
 
+      await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/users/`,
+        dbEntryBody,
+        dbConfig
+      );
+
       dispatch({
         type: SIGNUP_SUCCESS,
         payload: res.data,
       });
     } catch (err) {
+      console.log(err);
       dispatch({
         type: SIGNUP_FAIL,
       });

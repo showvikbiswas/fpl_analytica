@@ -3,7 +3,7 @@ class AuthRouter:
     A router to control all database operations on models in the
     auth and contenttypes applications.
     """
-    route_app_labels = {'auth', 'contenttypes', 'admin', 'sessions', 'accounts'}
+    route_app_labels = {'auth', 'contenttypes', 'admin', 'sessions', 'accounts', 'djoser', 'rest_framework'}
 
     def db_for_read(self, model, **hints):
         """
@@ -42,7 +42,7 @@ class AuthRouter:
             return db == 'auth_db'
         return None
 
-class HRDBRouter:
+class FPLDBRouter:
     """
     A router to control all database operations on models in the
     auth and contenttypes applications.
@@ -54,7 +54,7 @@ class HRDBRouter:
         Attempts to read auth and contenttypes models go to auth_db.
         """
         if model._meta.app_label in self.route_app_labels:
-            return 'hr_db'
+            return 'fpl_db'
         return None
 
     def db_for_write(self, model, **hints):
@@ -62,7 +62,7 @@ class HRDBRouter:
         Attempts to write auth and contenttypes models go to auth_db.
         """
         if model._meta.app_label in self.route_app_labels:
-            return 'hr_db'
+            return 'fpl_db'
         return None
 
     def allow_relation(self, obj1, obj2, **hints):
@@ -83,5 +83,5 @@ class HRDBRouter:
         'auth_db' database.
         """
         if app_label in self.route_app_labels:
-            return db == 'hr_db'
+            return db == 'fpl_db'
         return None
