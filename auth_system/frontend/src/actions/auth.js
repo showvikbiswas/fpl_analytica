@@ -168,12 +168,6 @@ export const signup =
         config
       );
 
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/users/`,
-        dbEntryBody,
-        dbConfig
-      );
-
       dispatch({
         type: SIGNUP_SUCCESS,
         payload: res.data,

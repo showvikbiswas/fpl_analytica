@@ -25,3 +25,26 @@ export const loadTeams = () => async (dispatch) => {
     console.log(err);
   }
 };
+
+export const loadPlayers = () => async (dispatch) => {
+  const config = {
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+  };
+
+  try {
+    const res = await axios.get(
+      `${process.env.REACT_APP_API_URL}/api/players/all/`,
+      config
+    );
+
+    dispatch({
+      type: TEAMS_LOADED,
+      payload: res.data,
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};

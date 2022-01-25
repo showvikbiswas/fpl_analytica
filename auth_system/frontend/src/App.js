@@ -12,6 +12,7 @@ import store from "./store";
 import PickTeam from "./containers/PickTeam";
 import CreateProfile from "./containers/CreateProfile";
 import PrivateRoute from "./hocs/PrivateRoute";
+import Transfers from "./containers/Transfers";
 
 const App = () => {
   return (
@@ -30,6 +31,7 @@ const App = () => {
             <Route path="/create-profile" element={<CreateProfile />} />
             <Route path="/activate/:uid/:token" element={<Activate />} />
             <Route path="/my-team" element={<PickTeam />} />
+            <Route path="/transfers" element={<Transfers />} />
           </Routes>
         </Layout>
       </BrowserRouter>

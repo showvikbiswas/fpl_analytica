@@ -25,16 +25,15 @@ const CreateProfile = ({
 
   const { name, age, favclub, fplteam } = formData;
 
-  const onChange = (e) =>
+  const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const onSubmit = (e) => {
     e.preventDefault();
-    completeRegistration(age, favclub, fplteam, user.email);
+    completeRegistration(age, favclub, fplteam, user.email, user.id, user.name);
     setAccountFinalized(true);
   };
-
-  const items = ["hehe", "this"];
 
   if (accountFinalized) {
     return <Navigate to="/" />;

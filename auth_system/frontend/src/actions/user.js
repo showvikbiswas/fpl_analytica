@@ -1,14 +1,26 @@
-import { USER_LOADED, USER_PROFILE_COMPLETE, USER_FINALIZED } from "./types";
+import {
+  USER_LOADED,
+  USER_PROFILE_COMPLETE,
+  USER_FINALIZED,
+  USER_LOADED_FAIL,
+  USER_LOAD_FAIL,
+} from "./types";
 import axios from "axios";
 
-export const loadUser = (email) => async (dispatch) => {
+export const loadUser = (id) => async (dispatch) => {
   const params = {
-    email: email,
+    id: id,
   };
-
   axios
     .get(`${process.env.REACT_APP_API_URL}/api/user/`, { params: params })
     .then((res) => {
+      if (res.data === "no user found") {
+        dispatch({
+          type: USER_LOAD_FAIL,
+          payload: res.data,
+        });
+        return;
+      }
       dispatch({
         type: USER_LOADED,
         payload: res.data,
@@ -18,7 +30,7 @@ export const loadUser = (email) => async (dispatch) => {
 };
 
 export const completeRegistration =
-  (age, favclub, fplteam, email) => async (dispatch) => {
+  (age, favclub, fplteam, email, id, name) => async (dispatch) => {
     function getCookie(name) {
       let cookieValue = null;
       if (document.cookie && document.cookie !== "") {
@@ -44,7 +56,7 @@ export const completeRegistration =
       },
     };
 
-    const body = JSON.stringify({ age, favclub, fplteam, email });
+    const body = JSON.stringify({ age, favclub, fplteam, email, id, name });
 
     try {
       const res = await axios.post(

@@ -3,6 +3,7 @@ import {
   USER_PROFILE_COMPLETE,
   LOGOUT,
   USER_FINALIZED,
+  USER_LOAD_FAIL,
 } from "../actions/types";
 
 const initialState = {
@@ -26,6 +27,11 @@ export default function (state = initialState, action) {
       return {
         ...state,
         user: payload[0],
+      };
+    case USER_LOAD_FAIL:
+      return {
+        ...state,
+        user: "none",
       };
     default:
       return state;

@@ -7,12 +7,12 @@ import { loadUser } from "../actions/user";
 
 const Home = ({ isAuthenticated, user, loadUser, userProfile }) => {
   if (isAuthenticated && user !== null && userProfile == null) {
-    loadUser(user.email);
+    loadUser(user.id);
   }
 
   if (userProfile) {
-    if (userProfile.PROFILE_COMPLETE === "N") {
-      return <Navigate to="/create-profile" />;
+    if (userProfile === "none") {
+      return <Navigate to="/create-profile"></Navigate>;
     }
   }
 

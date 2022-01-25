@@ -10,5 +10,16 @@ urlpatterns = [
    path('user/finalize/', views.finalize_user, name='finalize_user'),
 
    # Team APIs
-   path('teams/all/', views.get_teams, name='get_teams')
+   path('teams/all/', views.get_teams, name='get_teams'),
+
+   # Player APIs
+   path('players/', views.get_players, name='get_players'),
+   path('players/<int:id>/', views.get_player, name='get_player'),
+   
+
+   # FPL Gameweek APIs
+   path('current_gw_team/<int:id>/', views.get_current_gw_team, name='get_current_gw_team'),
+
+   # Test APIs
+   path('test/', views.test, name='test')
 ]
