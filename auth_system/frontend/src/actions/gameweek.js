@@ -1,5 +1,10 @@
 import axios from "axios";
-import { GW_TEAM_LOADED_SUCCESS, PLAYER_ADDED, PLAYER_REMOVED } from "./types";
+import {
+  GW_TEAM_LOADED_SUCCESS,
+  PLAYER_ADDED,
+  PLAYER_REMOVED,
+  RESET_TEAM,
+} from "./types";
 
 export const loadGWTeam = (id) => async (dispatch) => {
   const config = {
@@ -40,7 +45,7 @@ export const removePlayerFromGWTeam = (player) => (dispatch) => {
   });
 };
 
-export const resetGWTeam = (dispatch) => {
+export const resetGWTeam = () => (dispatch) => {
   dispatch({
     type: RESET_TEAM,
     payload: "reset_team",

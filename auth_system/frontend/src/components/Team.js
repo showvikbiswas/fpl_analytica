@@ -12,6 +12,7 @@ const Team = ({
   team,
   newTeam,
   removePlayerFromGWTeam,
+  resetGWTeam,
 }) => {
   const config = {
     headers: {

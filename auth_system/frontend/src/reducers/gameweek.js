@@ -2,6 +2,7 @@ import {
   GW_TEAM_LOADED_SUCCESS,
   PLAYER_ADDED,
   PLAYER_REMOVED,
+  RESET_TEAM,
 } from "../actions/types";
 
 const initialState = {
@@ -29,6 +30,11 @@ export default function (state = initialState, action) {
         newTeam: state.newTeam.filter((player) => {
           return player.PLAYER_ID !== payload.PLAYER_ID;
         }),
+      };
+    case RESET_TEAM:
+      return {
+        ...state,
+        newTeam: state.team,
       };
     default:
       return state;
