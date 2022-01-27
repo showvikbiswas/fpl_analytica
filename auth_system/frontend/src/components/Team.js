@@ -14,12 +14,8 @@ const Team = ({
   removePlayerFromGWTeam,
   resetGWTeam,
 }) => {
-  const config = {
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-  };
+  const [emptySlots, setEmptySlots] = useState([]);
+
   useEffect(() => {
     if (userProfile === null) {
       return;
@@ -27,6 +23,16 @@ const Team = ({
 
     loadGWTeam(userProfile.USER_ID);
   }, [userProfile]);
+
+  useEffect(() => {
+    if (newTeam !== null) {
+      const newEmptySlots = [];
+      for (let i = 0; i < 15 - newTeam.length; i++) {
+        newEmptySlots.push(<li class="list-group-item">Empty Slot</li>);
+      }
+      setEmptySlots(newEmptySlots);
+    }
+  }, [newTeam]);
 
   const removePlayer = (e, player) => {
     console.log(player.FULLNAME);
@@ -61,6 +67,7 @@ const Team = ({
             );
           })
         )}
+        {emptySlots}
       </ul>
       <button
         type="button"
