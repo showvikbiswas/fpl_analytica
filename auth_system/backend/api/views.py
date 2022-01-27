@@ -78,7 +78,7 @@ def get_teams(request):
         return HttpResponse(json.dumps(user), content_type="application/json")
 
 def get_players(request):
-    query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST FROM PLAYERS"
+    query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID FROM PLAYERS"
     param_list = list(request.GET.items())
     query_length = len(param_list)
     if (query_length >= 1):
@@ -99,19 +99,34 @@ def get_player(request, id):
     query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST FROM PLAYERS WHERE PLAYER_ID='" + str(id) + "'"
     with connections['fpl_db'].cursor() as cursor:
         cursor.execute(query)
-        user = dictfetchall(cursor)
-        return HttpResponse(json.dumps(user), content_type="application/json")
+        reply = dictfetchall(cursor)
+        return HttpResponse(json.dumps(reply), content_type="application/json")
 
 def test(request):
     query = "SELECT FIRST_NAME FROM PLAYERS WHERE ELEMENT_TYPE='ERD'"
     with connections['fpl_db'].cursor() as cursor:
         cursor.execute(query)
-        user = dictfetchall(cursor)
-        return HttpResponse(json.dumps(user), content_type="application/json")
+        reply = dictfetchall(cursor)
+        return HttpResponse(json.dumps(reply), content_type="application/json")
 
 def get_current_gw_team(request, id):
-    query = "SELECT * FROM GW_TEAMS WHERE USER_ID='" + str(id) + "'"
+    query = "SELECT * FROM GW_TEAMS WHERE USER_ID='" + str(id) + "'" + " AND GW = (SELECT MAX(GW) FROM GW_TEAMS)"
     with connections['fpl_db'].cursor() as cursor:
         cursor.execute(query)
-        user = dictfetchall(cursor)
-        return HttpResponse(json.dumps(user), content_type="application/json")
+        reply = dictfetchall(cursor)
+        if (reply == []):
+            return HttpResponse(json.dumps(reply), content_type="application/json")
+        else:
+            players = reply[0]['TEAM']
+            players = players.split(',')
+            print(players)
+            player_list = list()
+            # Make query to database about each player
+            for player in players:
+                query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID FROM PLAYERS WHERE PLAYER_ID='" + str(player) + "'"
+                cursor.execute(query)
+                reply = dictfetchall(cursor)
+                player_list.append(reply[0])
+            print(player_list)
+            return HttpResponse(json.dumps(player_list), content_type="application/json")
+        

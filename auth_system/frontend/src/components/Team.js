@@ -1,9 +1,18 @@
 import React from "react";
 import axios from "axios";
 import { useState, useEffect } from "react";
+import { loadGWTeam } from "../actions/gameweek";
+import { connect } from "react-redux";
+import { removePlayerFromGWTeam } from "../actions/gameweek";
+import { resetGWTeam } from "../actions/gameweek";
 
-const Team = ({ userProfile }) => {
-  const [team, setTeam] = useState("");
+const Team = ({
+  userProfile,
+  loadGWTeam,
+  team,
+  newTeam,
+  removePlayerFromGWTeam,
+}) => {
   const config = {
     headers: {
       "Content-Type": "application/json",
@@ -15,33 +24,61 @@ const Team = ({ userProfile }) => {
       return;
     }
 
-    const getCurrentTeam = async () => {
-      try {
-        const res = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/current_gw_team/${userProfile.USER_ID}/`,
-          config
-        );
-        // check whether res.data returns nothing
-        if (res.data.length > 0) {
-          setTeam(res.data[0].TEAM);
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    };
-
-    getCurrentTeam();
+    loadGWTeam(userProfile.USER_ID);
   }, [userProfile]);
 
-  useEffect(() => {
-    if (team !== "") {
-    }
-  }, [team]);
-  return <div>{}</div>;
+  const removePlayer = (e, player) => {
+    console.log(player.FULLNAME);
+
+    removePlayerFromGWTeam(player);
+  };
+
+  const resetPlayers = (e) => {
+    resetGWTeam();
+  };
+
+  return (
+    <div>
+      <ul class="list-group">
+        {newTeam === null ? (
+          <></>
+        ) : (
+          newTeam.map((player) => {
+            return (
+              <li class="list-group-item">
+                <div class="d-flex justify-content-between">
+                  {player.FULLNAME} {"   "} {player.ELEMENT_TYPE}
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={(e) => removePlayer(e, player)}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </li>
+            );
+          })
+        )}
+      </ul>
+      <button
+        type="button"
+        className="btn btn-primary"
+        onClick={(e) => resetPlayers(e)}
+      >
+        Reset
+      </button>
+    </div>
+  );
 };
 
 const mapStateToProps = (state) => ({
-  userProfile: state.user.user,
+  team: state.gameweek.team,
+  newTeam: state.gameweek.newTeam,
 });
 
-export default Team;
+export default connect(mapStateToProps, {
+  loadGWTeam,
+  removePlayerFromGWTeam,
+  resetGWTeam,
+})(Team);

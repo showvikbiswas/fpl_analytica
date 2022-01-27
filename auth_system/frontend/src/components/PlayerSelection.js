@@ -2,9 +2,11 @@ import React from "react";
 import { Fragment } from "react";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { connect } from "react-redux";
+import { addPlayerToGWTeam } from "../actions/gameweek";
 
-const PlayerSelection = () => {
-  const [searchData, setSearchData] = useState();
+const PlayerSelection = ({ team, addPlayerToGWTeam, newTeam }) => {
+  const [searchData, setSearchData] = useState("");
   const [filteredData, setFilteredData] = useState([]);
   const [playerType, setPlayerType] = useState("GK");
   const [players, setPlayers] = useState([]);
@@ -62,6 +64,37 @@ const PlayerSelection = () => {
       setFilteredData(newFilter);
     }
   }, [searchData, playerType]);
+
+  const addPlayer = (e, player) => {
+    if (newTeam.length == 15) {
+      console.log("The squad is already full");
+      return;
+    }
+
+    // if (
+    //   player ===
+    //   newTeam.filter((teamPlayer) => {
+    //     return teamPlayer.PLAYER_ID === player.PLAYER_ID;
+    //   })[0]
+    // ) {
+    //   console.log(player.PLAYER_ID);
+    //   console.log("Player already in squad");
+    //   return;
+    // }
+    console.log(player);
+
+    // check whether player can be added to the squad
+
+    for (let i = 0; i < newTeam.length; i++) {
+      if (newTeam[i].PLAYER_ID === player.PLAYER_ID) {
+        console.log(`${player.FULLNAME} is already added to the squad.`);
+        return;
+      }
+    }
+
+    // add player to the squad
+    addPlayerToGWTeam(player);
+  };
 
   return (
     <Fragment>
@@ -134,7 +167,11 @@ const PlayerSelection = () => {
                     </th>
                     <td style={{ width: "20%" }}>{player.NOW_COST}</td>
                     <td style={{ width: "10%" }}>
-                      <button type="button" className="btn btn-primary">
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={(e) => addPlayer(e, player)}
+                      >
                         Add
                       </button>
                     </td>
@@ -149,4 +186,9 @@ const PlayerSelection = () => {
   );
 };
 
-export default PlayerSelection;
+const mapStateToProps = (state) => ({
+  team: state.gameweek.team,
+  newTeam: state.gameweek.newTeam,
+});
+
+export default connect(mapStateToProps, { addPlayerToGWTeam })(PlayerSelection);
