@@ -5,7 +5,13 @@ import axios from "axios";
 import { connect } from "react-redux";
 import { addPlayerToGWTeam } from "../actions/gameweek";
 
-const PlayerSelection = ({ team, addPlayerToGWTeam, newTeam }) => {
+const PlayerSelection = ({ team, addPlayerToGWTeam, newTeam, newBudget }) => {
+  // some constants
+  const allowedGKs = 2;
+  const allowedDEFs = 5;
+  const allowedMIDs = 5;
+  const allowedFWDs = 3;
+
   const [searchData, setSearchData] = useState("");
   const [filteredData, setFilteredData] = useState([]);
   const [playerType, setPlayerType] = useState("GK");
@@ -92,8 +98,50 @@ const PlayerSelection = ({ team, addPlayerToGWTeam, newTeam }) => {
       }
     }
 
+    var clubPlayers = 0;
+    for (let i = 0; i < newTeam.length; i++) {
+      if (newTeam[i].TEAM === player.TEAM) {
+        clubPlayers++;
+      }
+    }
+
+    if (clubPlayers === 3) {
+      console.log(
+        `You have already selected the maximum number of players allowed from ${player.TEAM}`
+      );
+      return;
+    }
+
+    const elementType = player.ELEMENT_TYPE;
+    var elementTypeExists = 0;
+    for (let i = 0; i < newTeam.length; i++) {
+      if (newTeam[i].ELEMENT_TYPE === player.ELEMENT_TYPE) {
+        elementTypeExists++;
+      }
+    }
+
+    if (player.ELEMENT_TYPE == "GK" && elementTypeExists === 2) {
+      console.log("You cannot add any more goalkeepers.");
+      return;
+    }
+
+    if (player.ELEMENT_TYPE == "DEF" && elementTypeExists === 5) {
+      console.log("You cannot add any more defenders.");
+      return;
+    }
+
+    if (player.ELEMENT_TYPE == "MID" && elementTypeExists === 5) {
+      console.log("You cannot add any more midfielders.");
+      return;
+    }
+
+    if (player.ELEMENT_TYPE == "FWD" && elementTypeExists === 3) {
+      console.log("You cannot add any more forwards.");
+      return;
+    }
+
     // add player to the squad
-    addPlayerToGWTeam(player);
+    addPlayerToGWTeam(player, newBudget);
   };
 
   return (
@@ -154,6 +202,7 @@ const PlayerSelection = ({ team, addPlayerToGWTeam, newTeam }) => {
             <thead>
               <tr>
                 <th scope="col">Player </th>
+                <th scope="col">Club </th>
                 <th scope="col">Price</th>
                 <th scope="col"></th>
               </tr>
@@ -162,8 +211,11 @@ const PlayerSelection = ({ team, addPlayerToGWTeam, newTeam }) => {
               {filteredData.map((player) => {
                 return (
                   <tr>
-                    <th scope="row" style={{ width: "70%" }}>
+                    <th scope="row" style={{ width: "50%" }}>
                       {player.FULLNAME}
+                    </th>
+                    <th scope="row" style={{ width: "20%" }}>
+                      {player.TEAM}
                     </th>
                     <td style={{ width: "20%" }}>{player.NOW_COST}</td>
                     <td style={{ width: "10%" }}>
@@ -189,6 +241,7 @@ const PlayerSelection = ({ team, addPlayerToGWTeam, newTeam }) => {
 const mapStateToProps = (state) => ({
   team: state.gameweek.team,
   newTeam: state.gameweek.newTeam,
+  newBudget: state.gameweek.newBudget,
 });
 
 export default connect(mapStateToProps, { addPlayerToGWTeam })(PlayerSelection);

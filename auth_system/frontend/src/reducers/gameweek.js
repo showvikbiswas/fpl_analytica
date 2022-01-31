@@ -1,4 +1,6 @@
 import {
+  CONFIRM_TRANSFERS,
+  GW_BUDGET_UPDATED,
   GW_TEAM_LOADED_SUCCESS,
   PLAYER_ADDED,
   PLAYER_REMOVED,
@@ -8,6 +10,7 @@ import {
 const initialState = {
   team: null,
   newTeam: null,
+  newBudget: 0,
 };
 
 export default function (state = initialState, action) {
@@ -36,6 +39,13 @@ export default function (state = initialState, action) {
         ...state,
         newTeam: state.team,
       };
+
+    case GW_BUDGET_UPDATED:
+      return {
+        ...state,
+        newBudget: payload,
+      };
+    case CONFIRM_TRANSFERS:
     default:
       return state;
   }

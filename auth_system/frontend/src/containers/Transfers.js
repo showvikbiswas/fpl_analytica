@@ -7,17 +7,14 @@ import BookData from "../components/data.json";
 import PlayerSelection from "../components/PlayerSelection";
 import Team from "../components/Team";
 import axios from "axios";
+import { Navigate } from "react-router-dom";
 
 const Transfers = ({ isAuthenticated, user, userProfile, loadUser }) => {
   const [players, setPlayers] = useState([]);
   const [playerList, setPlayerList] = useState([]);
 
-  useEffect(() => {}, []);
-
-  if (isAuthenticated) {
-    if (user !== null && userProfile == null) {
-      loadUser(user.id);
-    }
+  if (isAuthenticated && user !== null && userProfile == null) {
+    loadUser(user.id);
   }
 
   return (
