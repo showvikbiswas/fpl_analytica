@@ -164,6 +164,7 @@ def confirm_gw_team(request, id):
         gks = str()
         mids = str()
         fwds = str()
+        subs = str()
         for player in team:
             if player['ELEMENT_TYPE'] == "GK":
                 gks += str(player['PLAYER_ID']) + ","
@@ -173,14 +174,18 @@ def confirm_gw_team(request, id):
                 mids += str(player['PLAYER_ID']) + ","
             if player['ELEMENT_TYPE'] == "FWD":
                 fwds += str(player['PLAYER_ID']) + ","
+        subs += gks.split(',')[0] + "," + defs.split(',')[0] + "," + mids.split(',')[0] + "," + fwds.split(',')[0]
+        print(subs) 
         query = "SELECT USER_ID FROM GW_TEAMS WHERE USER_ID ='" + str(id) + "'"
         cursor.execute(query)
         reply = dictfetchall(cursor)
         if reply == []:
-            query = "INSERT INTO GW_TEAMS (USER_ID, GW, GK, DEF, MID, FWD) VALUES ('" + str(id) + "', '" + str(current_gw) + "', '" + gks.strip(",") + "', '" + defs.strip(",") + "', '" + mids.strip(",") + "', '" + fwds.strip(",") + "')"
+            # New gameweek entry
+            query = "INSERT INTO GW_TEAMS (USER_ID, GW, GK, DEF, MID, FWD, SUBS) VALUES ('" + str(id) + "', '" + str(current_gw) + "', '" + gks.strip(",") + "', '" + defs.strip(",") + "', '" + mids.strip(",") + "', '" + fwds.strip(",") + "', '" + subs + "')"
             cursor.execute(query)
         else:
-            query = "UPDATE GW_TEAMS SET GK='" + gks.strip(",") + "', DEF='" + defs.strip(",") + "', MID='" + mids.strip(",") + "', FWD='" + fwds.strip(",") + "' WHERE USER_ID='" + str(id) + "' AND GW='" + str(current_gw) + "'"
+            # Updating current gameweek entry
+            query = "UPDATE GW_TEAMS SET GK='" + gks.strip(",") + "', DEF='" + defs.strip(",") + "', MID='" + mids.strip(",") + "', FWD='" + fwds.strip(",") + "', SUBS='" + subs + "' WHERE USER_ID='" + str(id) + "' AND GW='" + str(current_gw) + "'"
             cursor.execute(query)
         query = "SELECT TOTAL_POINTS FROM FPL_PLAYERS WHERE USER_ID='" + str(id) + "'"
         cursor.execute(query)

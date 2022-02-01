@@ -16,6 +16,7 @@ import {
   ACTIVATION_FAIL,
   ACTIVATION_SUCCESS,
   LOGOUT,
+  GET_ERRORS,
 } from "./types";
 
 function getCookie(name) {
@@ -53,7 +54,6 @@ export const checkAuthenticated = () => async (dispatch) => {
         body,
         config
       );
-      console.log(res.data.code);
       if (res.data.code !== "token_not_valid") {
         dispatch({
           type: AUTHENTICATED_SUCCESS,
@@ -140,6 +140,11 @@ export const login = (email, password) => async (dispatch) => {
     dispatch({
       type: LOGIN_FAIL,
     });
+
+    dispatch({
+      type: GET_ERRORS,
+      payload: err.response.data.detail,
+    });
   }
 };
 
@@ -176,6 +181,11 @@ export const signup =
       console.log(err);
       dispatch({
         type: SIGNUP_FAIL,
+      });
+
+      dispatch({
+        type: GET_ERRORS,
+        payload: err.response.data.email,
       });
     }
   };

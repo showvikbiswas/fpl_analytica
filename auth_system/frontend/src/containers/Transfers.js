@@ -20,10 +20,10 @@ const Transfers = ({ isAuthenticated, user, userProfile, loadUser }) => {
   return (
     <div class="container">
       <div class="row">
-        <div class="col-sm">
+        <div class="col">
           <Team userProfile={userProfile} />
         </div>
-        <div class="col-sm">
+        <div class="col-5">
           <PlayerSelection />
         </div>
       </div>

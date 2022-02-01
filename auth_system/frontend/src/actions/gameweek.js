@@ -63,10 +63,15 @@ export const removePlayerFromGWTeam = (player, newBudget) => (dispatch) => {
   });
 };
 
-export const resetGWTeam = () => (dispatch) => {
+export const resetGWTeam = (budget) => (dispatch) => {
   dispatch({
     type: RESET_TEAM,
     payload: "reset_team",
+  });
+
+  dispatch({
+    type: GW_BUDGET_UPDATED,
+    payload: budget,
   });
 };
 

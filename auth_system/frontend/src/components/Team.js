@@ -6,6 +6,7 @@ import { connect } from "react-redux";
 import { removePlayerFromGWTeam } from "../actions/gameweek";
 import { resetGWTeam } from "../actions/gameweek";
 import { confirmGWTransfers } from "../actions/gameweek";
+import { showError } from "../actions/errors";
 import { Navigate } from "react-router-dom";
 
 var initialFT = 0;
@@ -19,6 +20,7 @@ const Team = ({
   removePlayerFromGWTeam,
   resetGWTeam,
   confirmGWTransfers,
+  showError,
 }) => {
   const [GKEmptySlots, setGKEmptySlots] = useState([]);
   const [DEFEmptySlots, setDEFEmptySlots] = useState([]);
@@ -27,6 +29,7 @@ const Team = ({
   const [newFreeTransfers, setNewFreeTransfers] = useState(0);
   const [cost, setCost] = useState(0);
   const [confirmed, setConfirmed] = useState(false);
+  const [budgetAvailable, setBudgetAvailable] = useState(false);
 
   useEffect(() => {
     if (userProfile === null) {
@@ -126,6 +129,14 @@ const Team = ({
     }
   }, [newTeam]);
 
+  useEffect(() => {
+    if (newBudget < 0) {
+      setBudgetAvailable(false);
+    } else {
+      setBudgetAvailable(true);
+    }
+  }, [newBudget]);
+
   if (confirmed) {
     return <Navigate to="/" />;
   }
@@ -137,17 +148,17 @@ const Team = ({
   };
 
   const resetPlayers = (e) => {
-    resetGWTeam();
+    resetGWTeam(userProfile.BUDGET);
   };
 
   const confirmTransfers = (e) => {
     if (newBudget < 0) {
-      console.log("Team has surpassed available budget.");
+      showError("Team has surpassed available budget.");
       return;
     }
 
     if (newTeam.length < 15) {
-      console.log("Not enough players selected.");
+      showError("Not enough players selected.");
       return;
     }
     confirmGWTransfers(
@@ -166,14 +177,63 @@ const Team = ({
       {userProfile === null ? (
         <></>
       ) : (
-        <Fragment>
-          <h5>{"Free Transfers: " + newFreeTransfers}</h5>
-          <h5>{"Cost: " + cost}</h5>
-          <h5>{"Budget Remaining: " + newBudget}</h5>
-        </Fragment>
+        // <Fragment>
+        //   <h5>{"Free Transfers: " + newFreeTransfers}</h5>
+        //   <h5>{"Cost: " + cost}</h5>
+        //   <h5>{"Budget Remaining: " + newBudget}</h5>
+        // </Fragment>
+
+        <div class="container">
+          <div class="row">
+            <div class="col">
+              <hr />
+            </div>
+            <div class="col">
+              <hr />
+            </div>
+            <div class="col">
+              <hr />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <p class={"text-center"}>Free Transfers</p>
+              <h4 class="text-center">{newFreeTransfers}</h4>
+            </div>
+            <div class="col">
+              <p class="text-center">Cost</p>
+              <h4 class="text-center">{cost + " pts"}</h4>
+            </div>
+            <div class="col">
+              <p class="text-center">Money Remaining</p>
+              <h4
+                class={
+                  "text-center" +
+                  " " +
+                  (budgetAvailable ? "text-success" : "text-danger")
+                }
+              >
+                {newBudget}
+              </h4>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <hr />
+            </div>
+            <div class="col">
+              <hr />
+            </div>
+            <div class="col">
+              <hr />
+            </div>
+          </div>
+        </div>
       )}
 
-      <h4>Goalkeepers</h4>
+      <p className="mt-3">Goalkeepers</p>
       <ul class="list-group">
         {newTeam === null ? (
           <></>
@@ -183,7 +243,8 @@ const Team = ({
               return (
                 <li class="list-group-item">
                   <div class="d-flex justify-content-between">
-                    {player.FULLNAME} {"|"} {player.TEAM}
+                    {player.FULLNAME} {"|"} {player.TEAM} {"|"}{" "}
+                    {player.NOW_COST}
                     <button
                       type="button"
                       className="btn btn-primary"
@@ -200,7 +261,7 @@ const Team = ({
         {GKEmptySlots}
       </ul>
 
-      <h4>Defenders</h4>
+      <p className="mt-3">Defenders</p>
       <ul class="list-group">
         {newTeam === null ? (
           <></>
@@ -210,7 +271,8 @@ const Team = ({
               return (
                 <li class="list-group-item">
                   <div class="d-flex justify-content-between">
-                    {player.FULLNAME} {"|"} {player.TEAM}
+                    {player.FULLNAME} {"|"} {player.TEAM} {"|"}{" "}
+                    {player.NOW_COST}
                     <button
                       type="button"
                       className="btn btn-primary"
@@ -227,7 +289,7 @@ const Team = ({
         {DEFEmptySlots}
       </ul>
 
-      <h4>Midfielders</h4>
+      <p className="mt-3">Midfielders</p>
       <ul class="list-group">
         {newTeam === null ? (
           <></>
@@ -237,7 +299,8 @@ const Team = ({
               return (
                 <li class="list-group-item">
                   <div class="d-flex justify-content-between">
-                    {player.FULLNAME} {"|"} {player.TEAM}
+                    {player.FULLNAME} {"|"} {player.TEAM} {"|"}{" "}
+                    {player.NOW_COST}
                     <button
                       type="button"
                       className="btn btn-primary"
@@ -254,7 +317,7 @@ const Team = ({
         {MIDEmptySlots}
       </ul>
 
-      <h4>Forwards</h4>
+      <p className="mt-3">Forwards</p>
       <ul class="list-group">
         {newTeam === null ? (
           <></>
@@ -264,7 +327,8 @@ const Team = ({
               return (
                 <li class="list-group-item">
                   <div class="d-flex justify-content-between">
-                    {player.FULLNAME} {"|"} {player.TEAM}
+                    {player.FULLNAME} {"|"} {player.TEAM} {"|"}{" "}
+                    {player.NOW_COST}
                     <button
                       type="button"
                       className="btn btn-primary"
@@ -310,4 +374,5 @@ export default connect(mapStateToProps, {
   removePlayerFromGWTeam,
   resetGWTeam,
   confirmGWTransfers,
+  showError,
 })(Team);

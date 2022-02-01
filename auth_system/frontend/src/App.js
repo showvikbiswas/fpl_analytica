@@ -13,11 +13,13 @@ import PickTeam from "./containers/PickTeam";
 import CreateProfile from "./containers/CreateProfile";
 import PrivateRoute from "./hocs/PrivateRoute";
 import Transfers from "./containers/Transfers";
+import Alerts from "./components/Alerts";
 
 const App = () => {
   return (
     <Provider store={store}>
       <BrowserRouter>
+        <Alerts />
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />

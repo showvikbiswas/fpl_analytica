@@ -25,3 +25,7 @@ export const PLAYER_REMOVED = "PLAYER_REMOVED";
 export const RESET_TEAM = "RESET_TEAM";
 export const CONFIRM_TRANSFERS = "CONFIRM_TRANSFERS";
 export const GW_BUDGET_UPDATED = "GW_BUDGET_UPDATED";
+
+// errors
+export const GET_ERRORS = "GET_ERRORS";
+export const SWITCH_ERROR_OFF = "SWITCH_ERROR_OFF";

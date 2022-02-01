@@ -4,8 +4,15 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { connect } from "react-redux";
 import { addPlayerToGWTeam } from "../actions/gameweek";
+import { showError } from "../actions/errors";
 
-const PlayerSelection = ({ team, addPlayerToGWTeam, newTeam, newBudget }) => {
+const PlayerSelection = ({
+  team,
+  addPlayerToGWTeam,
+  newTeam,
+  newBudget,
+  showError,
+}) => {
   // some constants
   const allowedGKs = 2;
   const allowedDEFs = 5;
@@ -93,7 +100,7 @@ const PlayerSelection = ({ team, addPlayerToGWTeam, newTeam, newBudget }) => {
 
     for (let i = 0; i < newTeam.length; i++) {
       if (newTeam[i].PLAYER_ID === player.PLAYER_ID) {
-        console.log(`${player.FULLNAME} is already added to the squad.`);
+        showError(`${player.FULLNAME} is already added to the squad.`);
         return;
       }
     }
@@ -106,7 +113,7 @@ const PlayerSelection = ({ team, addPlayerToGWTeam, newTeam, newBudget }) => {
     }
 
     if (clubPlayers === 3) {
-      console.log(
+      showError(
         `You have already selected the maximum number of players allowed from ${player.TEAM}`
       );
       return;
@@ -121,22 +128,22 @@ const PlayerSelection = ({ team, addPlayerToGWTeam, newTeam, newBudget }) => {
     }
 
     if (player.ELEMENT_TYPE == "GK" && elementTypeExists === 2) {
-      console.log("You cannot add any more goalkeepers.");
+      showError("You cannot add any more goalkeepers.");
       return;
     }
 
     if (player.ELEMENT_TYPE == "DEF" && elementTypeExists === 5) {
-      console.log("You cannot add any more defenders.");
+      showError("You cannot add any more defenders.");
       return;
     }
 
     if (player.ELEMENT_TYPE == "MID" && elementTypeExists === 5) {
-      console.log("You cannot add any more midfielders.");
+      showError("You cannot add any more midfielders.");
       return;
     }
 
     if (player.ELEMENT_TYPE == "FWD" && elementTypeExists === 3) {
-      console.log("You cannot add any more forwards.");
+      showError("You cannot add any more forwards.");
       return;
     }
 
@@ -244,4 +251,6 @@ const mapStateToProps = (state) => ({
   newBudget: state.gameweek.newBudget,
 });
 
-export default connect(mapStateToProps, { addPlayerToGWTeam })(PlayerSelection);
+export default connect(mapStateToProps, { addPlayerToGWTeam, showError })(
+  PlayerSelection
+);
