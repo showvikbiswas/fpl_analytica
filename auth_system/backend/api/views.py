@@ -74,7 +74,7 @@ def get_teams(request):
         return HttpResponse(json.dumps(user), content_type="application/json")
 
 def get_players(request):
-    query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID, TEAM FROM PLAYERS"
+    query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID, TOTAL_POINTS TEAM FROM PLAYERS"
     param_list = list(request.GET.items())
     query_length = len(param_list)
     if (query_length >= 1):
@@ -92,7 +92,7 @@ def get_players(request):
         return HttpResponse(json.dumps(user), content_type="application/json")
 
 def get_player(request, id):
-    query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST FROM PLAYERS WHERE PLAYER_ID='" + str(id) + "'"
+    query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, TOTAL_POINTS FROM PLAYERS WHERE PLAYER_ID='" + str(id) + "'"
     with connections['fpl_db'].cursor() as cursor:
         cursor.execute(query)
         reply = dictfetchall(cursor)
@@ -124,22 +124,22 @@ def get_current_gw_team(request, id):
             player_list = list()
             # Make query to database about each player
             for player in GKs:
-                query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID, TEAM FROM PLAYERS WHERE PLAYER_ID='" + str(player) + "'"
+                query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID, TEAM, TOTAL_POINTS FROM PLAYERS WHERE PLAYER_ID='" + str(player) + "'"
                 cursor.execute(query)
                 reply = dictfetchall(cursor)
                 player_list.append(reply[0])
             for player in DEFs:
-                query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID, TEAM FROM PLAYERS WHERE PLAYER_ID='" + str(player) + "'"
+                query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID, TEAM, TOTAL_POINTS FROM PLAYERS WHERE PLAYER_ID='" + str(player) + "'"
                 cursor.execute(query)
                 reply = dictfetchall(cursor)
                 player_list.append(reply[0])
             for player in MIDs:
-                query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID, TEAM FROM PLAYERS WHERE PLAYER_ID='" + str(player) + "'"
+                query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID, TEAM, TOTAL_POINTS FROM PLAYERS WHERE PLAYER_ID='" + str(player) + "'"
                 cursor.execute(query)
                 reply = dictfetchall(cursor)
                 player_list.append(reply[0])
             for player in FWDs:
-                query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID, TEAM FROM PLAYERS WHERE PLAYER_ID='" + str(player) + "'"
+                query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID, TEAM, TOTAL_POINTS FROM PLAYERS WHERE PLAYER_ID='" + str(player) + "'"
                 cursor.execute(query)
                 reply = dictfetchall(cursor)
                 player_list.append(reply[0])

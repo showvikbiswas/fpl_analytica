@@ -80,7 +80,7 @@ const PlayerSelection = ({
 
   const addPlayer = (e, player) => {
     if (newTeam.length == 15) {
-      console.log("The squad is already full");
+      showError("The squad is already full");
       return;
     }
 

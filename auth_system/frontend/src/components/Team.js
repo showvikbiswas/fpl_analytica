@@ -80,22 +80,54 @@ const Team = ({
       });
 
       for (let i = 0; i < 2 - GKs; i++) {
-        GKEmptySlots.push(<li class="list-group-item">Empty Slot</li>);
+        GKEmptySlots.push(
+          <tr>
+            <th scope="row">Empty Slot</th>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        );
       }
       setGKEmptySlots(GKEmptySlots);
 
       for (let i = 0; i < 5 - DEFs; i++) {
-        DEFEmptySlots.push(<li class="list-group-item">Empty Slot</li>);
+        DEFEmptySlots.push(
+          <tr>
+            <th scope="row">Empty Slot</th>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        );
       }
       setDEFEmptySlots(DEFEmptySlots);
 
       for (let i = 0; i < 5 - MIDs; i++) {
-        MIDEmptySlots.push(<li class="list-group-item">Empty Slot</li>);
+        MIDEmptySlots.push(
+          <tr>
+            <th scope="row">Empty Slot</th>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        );
       }
       setMIDEmptySlots(MIDEmptySlots);
 
       for (let i = 0; i < 3 - FWDs; i++) {
-        FWDEmptySlots.push(<li class="list-group-item">Empty Slot</li>);
+        FWDEmptySlots.push(
+          <tr>
+            <th scope="row">Empty Slot</th>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        );
       }
       setFWDEmptySlots(FWDEmptySlots);
 
@@ -233,117 +265,166 @@ const Team = ({
         </div>
       )}
 
-      <p className="mt-3">Goalkeepers</p>
-      <ul class="list-group">
-        {newTeam === null ? (
-          <></>
-        ) : (
-          newTeam.map((player) => {
-            if (player.ELEMENT_TYPE == "GK") {
-              return (
-                <li class="list-group-item">
-                  <div class="d-flex justify-content-between">
-                    {player.FULLNAME} {"|"} {player.TEAM} {"|"}{" "}
-                    {player.NOW_COST}
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={(e) => removePlayer(e, player)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </li>
-              );
-            }
-          })
-        )}
-        {GKEmptySlots}
-      </ul>
+      <table className="table">
+        <thead className="thead-dark">
+          <tr>
+            <th scope="col">Goalkeepers</th>
+            <th scope="col">Club</th>
+            <th scope="col">CP</th>
+            <th scope="col">TP</th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {newTeam === null ? (
+            <></>
+          ) : (
+            newTeam.map((player) => {
+              if (player.ELEMENT_TYPE == "GK") {
+                return (
+                  <tr>
+                    <th scope="row">{player.FULLNAME}</th>
+                    <td>{player.TEAM}</td>
+                    <td>{player.NOW_COST}</td>
+                    <td>{player.TOTAL_POINTS}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={(e) => removePlayer(e, player)}
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                );
+              }
+            })
+          )}
+          {GKEmptySlots}
+        </tbody>
+      </table>
 
-      <p className="mt-3">Defenders</p>
-      <ul class="list-group">
-        {newTeam === null ? (
-          <></>
-        ) : (
-          newTeam.map((player) => {
-            if (player.ELEMENT_TYPE == "DEF") {
-              return (
-                <li class="list-group-item">
-                  <div class="d-flex justify-content-between">
-                    {player.FULLNAME} {"|"} {player.TEAM} {"|"}{" "}
-                    {player.NOW_COST}
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={(e) => removePlayer(e, player)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </li>
-              );
-            }
-          })
-        )}
-        {DEFEmptySlots}
-      </ul>
+      <table className="table">
+        <thead className="thead-dark">
+          <tr>
+            <th scope="col">Defenders</th>
+            <th scope="col">Club</th>
+            <th scope="col">CP</th>
+            <th scope="col">TP</th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {newTeam === null ? (
+            <></>
+          ) : (
+            newTeam.map((player) => {
+              if (player.ELEMENT_TYPE == "DEF") {
+                return (
+                  <tr>
+                    <th scope="row">{player.FULLNAME}</th>
+                    <td>{player.TEAM}</td>
+                    <td>{player.NOW_COST}</td>
+                    <td>{player.TOTAL_POINTS}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={(e) => removePlayer(e, player)}
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                );
+              }
+            })
+          )}
+          {DEFEmptySlots}
+        </tbody>
+      </table>
 
-      <p className="mt-3">Midfielders</p>
-      <ul class="list-group">
-        {newTeam === null ? (
-          <></>
-        ) : (
-          newTeam.map((player) => {
-            if (player.ELEMENT_TYPE == "MID") {
-              return (
-                <li class="list-group-item">
-                  <div class="d-flex justify-content-between">
-                    {player.FULLNAME} {"|"} {player.TEAM} {"|"}{" "}
-                    {player.NOW_COST}
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={(e) => removePlayer(e, player)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </li>
-              );
-            }
-          })
-        )}
-        {MIDEmptySlots}
-      </ul>
+      <table className="table">
+        <thead className="thead-dark">
+          <tr>
+            <th scope="col">Midfielders</th>
+            <th scope="col">Club</th>
+            <th scope="col">CP</th>
+            <th scope="col">TP</th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {newTeam === null ? (
+            <></>
+          ) : (
+            newTeam.map((player) => {
+              if (player.ELEMENT_TYPE == "MID") {
+                return (
+                  <tr>
+                    <th scope="row">{player.FULLNAME}</th>
+                    <td>{player.TEAM}</td>
+                    <td>{player.NOW_COST}</td>
+                    <td>{player.TOTAL_POINTS}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={(e) => removePlayer(e, player)}
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                );
+              }
+            })
+          )}
+          {MIDEmptySlots}
+        </tbody>
+      </table>
 
-      <p className="mt-3">Forwards</p>
-      <ul class="list-group">
-        {newTeam === null ? (
-          <></>
-        ) : (
-          newTeam.map((player) => {
-            if (player.ELEMENT_TYPE == "FWD") {
-              return (
-                <li class="list-group-item">
-                  <div class="d-flex justify-content-between">
-                    {player.FULLNAME} {"|"} {player.TEAM} {"|"}{" "}
-                    {player.NOW_COST}
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={(e) => removePlayer(e, player)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </li>
-              );
-            }
-          })
-        )}
-        {FWDEmptySlots}
-      </ul>
+      <table className="table">
+        <thead className="thead-dark">
+          <tr>
+            <th scope="col">Forwards</th>
+            <th scope="col">Club</th>
+            <th scope="col">CP</th>
+            <th scope="col">TP</th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {newTeam === null ? (
+            <></>
+          ) : (
+            newTeam.map((player) => {
+              if (player.ELEMENT_TYPE == "FWD") {
+                return (
+                  <tr>
+                    <th scope="row">{player.FULLNAME}</th>
+                    <td>{player.TEAM}</td>
+                    <td>{player.NOW_COST}</td>
+                    <td>{player.TOTAL_POINTS}</td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={(e) => removePlayer(e, player)}
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                );
+              }
+            })
+          )}
+          {FWDEmptySlots}
+        </tbody>
+      </table>
+
       <button
         type="button"
         className="btn btn-primary mt-3"
