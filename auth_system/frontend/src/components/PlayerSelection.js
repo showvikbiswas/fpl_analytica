@@ -79,7 +79,7 @@ const PlayerSelection = ({
   }, [searchData, playerType]);
 
   const addPlayer = (e, player) => {
-    if (newTeam.length == 15) {
+    if (newTeam.team.length == 15) {
       showError("The squad is already full");
       return;
     }
@@ -98,16 +98,16 @@ const PlayerSelection = ({
 
     // check whether player can be added to the squad
 
-    for (let i = 0; i < newTeam.length; i++) {
-      if (newTeam[i].PLAYER_ID === player.PLAYER_ID) {
+    for (let i = 0; i < newTeam.team.length; i++) {
+      if (newTeam.team[i].PLAYER_ID === player.PLAYER_ID) {
         showError(`${player.FULLNAME} is already added to the squad.`);
         return;
       }
     }
 
     var clubPlayers = 0;
-    for (let i = 0; i < newTeam.length; i++) {
-      if (newTeam[i].TEAM === player.TEAM) {
+    for (let i = 0; i < newTeam.team.length; i++) {
+      if (newTeam.team[i].TEAM === player.TEAM) {
         clubPlayers++;
       }
     }
@@ -121,8 +121,8 @@ const PlayerSelection = ({
 
     const elementType = player.ELEMENT_TYPE;
     var elementTypeExists = 0;
-    for (let i = 0; i < newTeam.length; i++) {
-      if (newTeam[i].ELEMENT_TYPE === player.ELEMENT_TYPE) {
+    for (let i = 0; i < newTeam.team.length; i++) {
+      if (newTeam.team[i].ELEMENT_TYPE === player.ELEMENT_TYPE) {
         elementTypeExists++;
       }
     }

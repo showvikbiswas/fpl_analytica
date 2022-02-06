@@ -140,6 +140,19 @@ def get_current_gw_team(request, id):
             }
             return HttpResponse(json.dumps(data), content_type="application/json") # your code goes here
             
+def get_points(request, id, gw):
+     with connections['fpl_db'].cursor() as cursor:
+        query = "SELECT PLAYER_ID FROM GW_TEAMS_PLAYERS WHERE USER_ID='" + str(id) + "'" + " AND GW = SELECT MAX(GW) GAMEWEEK FROM FIXTURES WHERE FINISHED = 'TRUE'"
+        cursor.execute(query)
+        reply = dictfetchall(cursor)
+        player_list = list()
+        for player in reply:
+                query = "SELECT NAME, PLAYER_ID, TEAM, TOTAL_POINTS POINTS FROM PLAYER_STATS WHERE PLAYER_ID='"+str(player.PLAYER_ID)+"'"+ " AND GW = (SELECT MAX(GW) GAMEWEEK FROM FIXTURES WHERE FINISHED = 'TRUE')"
+                cursor.execute(query)
+                reply = dictfetchall(cursor)
+        
+        
+
 @csrf_exempt
 def confirm_gw_team(request, id):
     query = "SELECT * FROM GW_TEAMS WHERE USER_ID='" + str(id) + "'" + " AND GW = (SELECT MAX(GW) FROM GW_TEAMS)"
@@ -390,3 +403,47 @@ def delete_league(request, id):
         query = "DELETE FROM LEAGUES WHERE ID='{}'".format(id)
         cursor.execute(query)
         return HttpResponse("league deleted")
+        
+@csrf_exempt
+def confirm_playing_team(request, id):
+    body = json.loads(request.body)
+    print(body)
+    team = body['teamData']
+    captain = body['captainData']
+    vice_captain = body['viceCaptainData']
+    print(captain)
+    print(vice_captain)
+    with connections['fpl_db'].cursor() as cursor:
+        for player in team:
+            query = "UPDATE GW_TEAMS_PLAYERS SET IS_STARTING='"+str(player['IS_STARTING']) + "'" + " WHERE USER_ID='" + str(id) + "'" + " AND GW = (SELECT MAX(GW) FROM GW_TEAMS)" + " AND PLAYER_ID ='"+str(player['PLAYER_ID'])+ "'"
+            cursor.execute(query)
+    with connections['fpl_db'].cursor() as cursor:
+            query = "UPDATE  GW_TEAMS SET CAPTAIN='"+str(captain)+"'"+ " WHERE USER_ID='" + str(id) + "'" + " AND GW = (SELECT MAX(GW) FROM GW_TEAMS)"
+            cursor.execute(query)
+            query = "UPDATE  GW_TEAMS SET VICE_CAPTAIN='"+str(vice_captain)+"'"+ " WHERE USER_ID='" + str(id) + "'" + " AND GW = (SELECT MAX(GW) FROM GW_TEAMS)"                                                                                                                                                                                                                                                                                                                                                                                    
+            cursor.execute(query)
+    return HttpResponse(json.dumps("success"), content_type="application/json")
+
+@csrf_exempt
+def get_fixtures(request):                    
+    with connections['fpl_db'].cursor() as cursor:
+        query = """SELECT T1.NAME H_TEAM, T2.NAME A_TEAM FROM (SELECT HOME_TEAM, AWAY_TEAM FROM FIXTURES 
+                    WHERE GW = (SELECT MAX(GW)+1 FROM FIXTURES WHERE FINISHED = 'TRUE') ) F
+                    JOIN TEAMS T1
+                    ON ( T1.ID = F.HOME_TEAM)
+                    JOIN TEAMS T2
+                    ON ( T2.ID = F.AWAY_TEAM)"""
+        cursor.execute(query)
+        fixtures = dictfetchall(cursor)
+    with connections['fpl_db'].cursor() as cursor:
+        query = "SELECT MAX(GW)+1 GAMEWEEK FROM FIXTURES WHERE FINISHED = 'TRUE'"                              
+        cursor.execute(query)
+        reply = dictfetchall(cursor)
+        gameweek = reply[0]['GAMEWEEK']
+    data = {
+             "fixtures": fixtures,
+             "gameweek": gameweek,
+        }
+    print("fixtures",data)
+    return HttpResponse(json.dumps(data), content_type="application/json")
+

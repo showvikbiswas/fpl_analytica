@@ -52,7 +52,7 @@ const Team = ({
         DEFs = 0,
         MIDs = 0,
         FWDs = 0;
-      newTeam.map((player) => {
+      newTeam.team.map((player) => {
         // switch (player.ELEMENT_TYPE) {
         //   case "GK":
         //     console.log("GK");
@@ -135,14 +135,14 @@ const Team = ({
       var usedFT = 0;
 
       // if absolutely new player
-      if (team.length === 0) {
-        usedFT += newTeam.length;
+      if (team.team.length === 0) {
+        usedFT += newTeam.team.length;
       } else {
-        usedFT += team.length - newTeam.length;
-        for (let i = 0; i < newTeam.length; i++) {
+        usedFT += team.team.length - newTeam.team.length;
+        for (let i = 0; i < newTeam.team.length; i++) {
           let found = false;
-          for (let j = 0; j < team.length; j++) {
-            if (newTeam[i].PLAYER_ID === team[j].PLAYER_ID) {
+          for (let j = 0; j < team.team.length; j++) {
+            if (newTeam.team[i].PLAYER_ID === team.team[j].PLAYER_ID) {
               found = true;
             }
           }
@@ -189,7 +189,7 @@ const Team = ({
       return;
     }
 
-    if (newTeam.length < 15) {
+    if (newTeam.team.length < 15) {
       showError("Not enough players selected.");
       return;
     }
@@ -197,7 +197,7 @@ const Team = ({
       userProfile.USER_ID,
       newBudget,
       newFreeTransfers,
-      newTeam,
+      newTeam.team,
       cost
     );
 
@@ -279,7 +279,7 @@ const Team = ({
           {newTeam === null ? (
             <></>
           ) : (
-            newTeam.map((player) => {
+            newTeam.team.map((player) => {
               if (player.ELEMENT_TYPE == "GK") {
                 return (
                   <tr>
@@ -321,7 +321,7 @@ const Team = ({
           {newTeam === null ? (
             <></>
           ) : (
-            newTeam.map((player) => {
+            newTeam.team.map((player) => {
               if (player.ELEMENT_TYPE == "DEF") {
                 return (
                   <tr>
@@ -363,7 +363,7 @@ const Team = ({
           {newTeam === null ? (
             <></>
           ) : (
-            newTeam.map((player) => {
+            newTeam.team.map((player) => {
               if (player.ELEMENT_TYPE == "MID") {
                 return (
                   <tr>
@@ -405,7 +405,7 @@ const Team = ({
           {newTeam === null ? (
             <></>
           ) : (
-            newTeam.map((player) => {
+            newTeam.team.map((player) => {
               if (player.ELEMENT_TYPE == "FWD") {
                 return (
                   <tr>
