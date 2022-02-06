@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.db import connections
 import json
 from django.views.decorators.csrf import csrf_exempt
+from .utils import generate_code
 
 # Create your views here.
 
@@ -40,7 +41,7 @@ def finalize_user(request):
 
     print(request.body)
 
-    query = "INSERT INTO FPL_PLAYERS (NAME, TEAM_NAME, PROFILE_COMPLETE, BUDGET, FAVOURITE_CLUB, EMAIL, USER_ID, TOTAL_POINTS) VALUES ('" + name + "', '" + fplteam + "', 'Y', '100', '" + favclub + "',  '" + email + "', '" + str(id) + "', '0')"
+    query = "INSERT INTO FPL_PLAYERS (NAME, TEAM_NAME, PROFILE_COMPLETE, BUDGET, FAVOURITE_CLUB, EMAIL, USER_ID, TOTAL_POINTS) VALUES ('" + name + "', '" + fplteam + "', 'Y', '1000', '" + favclub + "',  '" + email + "', '" + str(id) + "', '0')"
 
     with connections['fpl_db'].cursor() as cursor:
         cursor.execute(query)
@@ -74,7 +75,7 @@ def get_teams(request):
         return HttpResponse(json.dumps(user), content_type="application/json")
 
 def get_players(request):
-    query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID, TOTAL_POINTS TEAM FROM PLAYERS"
+    query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID, TOTAL_POINTS, TEAM FROM PLAYERS"
     param_list = list(request.GET.items())
     query_length = len(param_list)
     if (query_length >= 1):
@@ -106,45 +107,39 @@ def test(request):
         return HttpResponse(json.dumps(reply), content_type="application/json")
 
 def get_current_gw_team(request, id):
-    query = "SELECT * FROM GW_TEAMS WHERE USER_ID='" + str(id) + "'" + " AND GW = (SELECT MAX(GW) FROM GW_TEAMS)"
     with connections['fpl_db'].cursor() as cursor:
+        query = "SELECT * FROM GW_TEAMS_PLAYERS WHERE FPL_PLAYER_ID='" + str(id) + "'" + " AND GW = (SELECT MAX(GW) FROM GW_TEAMS)"
         cursor.execute(query)
         reply = dictfetchall(cursor)
+        # print(reply)
         if (reply == []):
             return HttpResponse(json.dumps(reply), content_type="application/json")
-        else:
-            GKs = reply[0]['GK']
-            DEFs = reply[0]['DEF']
-            MIDs = reply[0]['MID']
-            FWDs = reply[0]['FWD']
-            GKs = GKs.split(',')
-            DEFs = DEFs.split(',')
-            MIDs = MIDs.split(',')
-            FWDs = FWDs.split(',')
-            player_list = list()
-            # Make query to database about each player
-            for player in GKs:
-                query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID, TEAM, TOTAL_POINTS FROM PLAYERS WHERE PLAYER_ID='" + str(player) + "'"
-                cursor.execute(query)
-                reply = dictfetchall(cursor)
-                player_list.append(reply[0])
-            for player in DEFs:
-                query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID, TEAM, TOTAL_POINTS FROM PLAYERS WHERE PLAYER_ID='" + str(player) + "'"
-                cursor.execute(query)
-                reply = dictfetchall(cursor)
-                player_list.append(reply[0])
-            for player in MIDs:
-                query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID, TEAM, TOTAL_POINTS FROM PLAYERS WHERE PLAYER_ID='" + str(player) + "'"
-                cursor.execute(query)
-                reply = dictfetchall(cursor)
-                player_list.append(reply[0])
-            for player in FWDs:
-                query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID, TEAM, TOTAL_POINTS FROM PLAYERS WHERE PLAYER_ID='" + str(player) + "'"
-                cursor.execute(query)
-                reply = dictfetchall(cursor)
-                player_list.append(reply[0])
-            return HttpResponse(json.dumps(player_list), content_type="application/json")
 
+        else:
+            player_list = list()
+            sub_list = list()
+            # Make query to database about each player
+            for player in reply:
+                # print("all hail bangladesh", player['PLAYER_ID'])
+                query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID, TEAM, TOTAL_POINTS FROM PLAYERS WHERE PLAYER_ID='" + str(player['PLAYER_ID']) + "'"
+                cursor.execute(query)
+                reply_element = dictfetchall(cursor)
+                player_list.append(reply_element[0])
+                if (player['IS_STARTING'] == 'N'):
+                    sub_list.append(reply_element[0])
+            query = "SELECT CAPTAIN, VICE_CAPTAIN FROM GW_TEAMS WHERE USER_ID='" + str(id) + "'" + " AND GW = (SELECT MAX(GW) FROM GW_TEAMS)"
+            cursor.execute(query)
+            reply = dictfetchall(cursor)
+            CAPTAIN = reply[0]['CAPTAIN']
+            VICE_CAPTAIN = reply[0]['VICE_CAPTAIN']
+            data = {
+                "team": player_list,
+                "subs": sub_list,
+                "captain": CAPTAIN,
+                "vice_captain": VICE_CAPTAIN,
+            }
+            return HttpResponse(json.dumps(data), content_type="application/json") # your code goes here
+            
 @csrf_exempt
 def confirm_gw_team(request, id):
     query = "SELECT * FROM GW_TEAMS WHERE USER_ID='" + str(id) + "'" + " AND GW = (SELECT MAX(GW) FROM GW_TEAMS)"
@@ -153,6 +148,7 @@ def confirm_gw_team(request, id):
     newBudget = body['newBudget']
     cost = body['cost']
     newFreeTransfers = body['newFreeTransfers']
+
     if (newFreeTransfers < 0):
         newFreeTransfers = 0
     with connections['fpl_db'].cursor() as cursor:
@@ -160,34 +156,83 @@ def confirm_gw_team(request, id):
         cursor.execute(query)
         reply = dictfetchall(cursor)
         current_gw = int(reply[0]["CURRENT_GW"])
-        defs = str()
-        gks = str()
-        mids = str()
-        fwds = str()
-        subs = str()
-        for player in team:
-            if player['ELEMENT_TYPE'] == "GK":
-                gks += str(player['PLAYER_ID']) + ","
-            elif player['ELEMENT_TYPE'] == "DEF":
-                defs += str(player['PLAYER_ID']) + ","
-            if player['ELEMENT_TYPE'] == "MID":
-                mids += str(player['PLAYER_ID']) + ","
-            if player['ELEMENT_TYPE'] == "FWD":
-                fwds += str(player['PLAYER_ID']) + ","
-        subs += gks.split(',')[0] + "," + defs.split(',')[0] + "," + mids.split(',')[0] + "," + fwds.split(',')[0]
-        print(subs) 
-        query = "SELECT USER_ID FROM GW_TEAMS WHERE USER_ID ='" + str(id) + "'"
+
+        # populate gw_teams
+        # check whether there is a team made or not
+        query = "SELECT * FROM GW_TEAMS WHERE USER_ID='{}' AND GW='{}'".format(id, current_gw)
         cursor.execute(query)
         reply = dictfetchall(cursor)
         if reply == []:
-            # New gameweek entry
-            query = "INSERT INTO GW_TEAMS (USER_ID, GW, GK, DEF, MID, FWD, SUBS) VALUES ('" + str(id) + "', '" + str(current_gw) + "', '" + gks.strip(",") + "', '" + defs.strip(",") + "', '" + mids.strip(",") + "', '" + fwds.strip(",") + "', '" + subs + "')"
+            # if no team present team
+            query = "INSERT INTO GW_TEAMS (USER_ID, GW, CAPTAIN, VICE_CAPTAIN) VALUES ('{}', '{}', '{}', '{}')".format(id, current_gw, team[5]['PLAYER_ID'], team[6]['PLAYER_ID'])
             cursor.execute(query)
-        else:
-            # Updating current gameweek entry
-            query = "UPDATE GW_TEAMS SET GK='" + gks.strip(",") + "', DEF='" + defs.strip(",") + "', MID='" + mids.strip(",") + "', FWD='" + fwds.strip(",") + "', SUBS='" + subs + "' WHERE USER_ID='" + str(id) + "' AND GW='" + str(current_gw) + "'"
+
+        # if team present then
+        # populate gw_teams_players
+        query = "SELECT * FROM GW_TEAMS_PLAYERS WHERE GW='{}' AND FPL_PLAYER_ID='{}'".format(current_gw, id)
+        cursor.execute(query)
+        reply = dictfetchall(cursor)
+        if reply != []:
+            # if a team already exists, delete that entire team and renew
+            query = "DELETE FROM GW_TEAMS_PLAYERS WHERE GW='{}' AND FPL_PLAYER_ID='{}'".format(current_gw, id)
             cursor.execute(query)
-        query = "SELECT TOTAL_POINTS FROM FPL_PLAYERS WHERE USER_ID='" + str(id) + "'"
+        
+        # new gameweek entry
+        for player in team:
+            query = "INSERT INTO GW_TEAMS_PLAYERS (GW, FPL_PLAYER_ID, PLAYER_ID) VALUES ('{}', '{}', '{}')".format(current_gw, id, player['PLAYER_ID'])
+            cursor.execute(query)
+        # add one of each to the subs list
+        s_gk = s_def = s_mid = s_fwd = False
+        for player in team:
+            if not s_gk and player['ELEMENT_TYPE'] == 'GK':
+                s_gk = True
+                query = "UPDATE GW_TEAMS_PLAYERS SET IS_STARTING='N' WHERE GW='{}' AND FPL_PLAYER_ID='{}' AND PLAYER_ID='{}'".format(current_gw, id, player['PLAYER_ID'])
+                cursor.execute(query)
+            
+            if not s_def and player['ELEMENT_TYPE'] == 'DEF':
+                s_def = True
+                query = "UPDATE GW_TEAMS_PLAYERS SET IS_STARTING='N' WHERE GW='{}' AND FPL_PLAYER_ID='{}' AND PLAYER_ID='{}'".format(current_gw, id, player['PLAYER_ID'])
+                cursor.execute(query)
+            
+            if not s_mid and player['ELEMENT_TYPE'] == 'MID':
+                s_mid = True
+                query = "UPDATE GW_TEAMS_PLAYERS SET IS_STARTING='N' WHERE GW='{}' AND FPL_PLAYER_ID='{}' AND PLAYER_ID='{}'".format(current_gw, id, player['PLAYER_ID'])
+                cursor.execute(query)
+            
+            if not s_fwd and player['ELEMENT_TYPE'] == 'FWD':
+                s_fwd = True
+                query = "UPDATE GW_TEAMS_PLAYERS SET IS_STARTING='N' WHERE GW='{}' AND FPL_PLAYER_ID='{}' AND PLAYER_ID='{}'".format(current_gw, id, player['PLAYER_ID'])
+                cursor.execute(query)
+
+        # update gw_team entry (cost, captain, and vice captain)
+        query = "SELECT CAPTAIN, VICE_CAPTAIN FROM GW_TEAMS WHERE USER_ID='{}' AND GW='{}'".format(id, current_gw)
+        cursor.execute(query)
+        reply = dictfetchall(cursor)
+        prev_captain_id = reply[0]['CAPTAIN']
+        prev_vice_captain_id = reply[0]['VICE_CAPTAIN']
+        # check whether captain is playing in newly confirmed team
+        query = "SELECT * FROM GW_TEAMS_PLAYERS WHERE GW='{}' AND FPL_PLAYER_ID='{}' AND PLAYER_ID='{}'".format(current_gw, id, prev_captain_id)
+        cursor.execute(query)
+        reply = dictfetchall(cursor)
+        if reply == []:
+            query = "UPDATE GW_TEAMS SET CAPTAIN='{}' WHERE USER_ID='{}' AND GW='{}'".format(team[5]['PLAYER_ID'], id, current_gw)
+
+        # check whether vice captain is playing in newly confirmed team
+        query = "SELECT * FROM GW_TEAMS_PLAYERS WHERE GW='{}' AND FPL_PLAYER_ID='{}' AND PLAYER_ID='{}'".format(current_gw, id, prev_vice_captain_id)
+        cursor.execute(query)
+        reply = dictfetchall(cursor)
+        if reply == []:
+            query = "UPDATE GW_TEAMS SET VICE_CAPTAIN='{}' WHERE USER_ID='{}' AND GW='{}'".format(team[6]['PLAYER_ID'], id, current_gw)
+        
+        # update gw_points
+        query = "SELECT GW_POINTS FROM GW_TEAMS WHERE USER_ID='{}' AND GW='{}'".format(id, current_gw)
+        cursor.execute(query)
+        gw_points = dictfetchall(cursor)[0]['GW_POINTS']
+        query = "UPDATE GW_TEAMS SET GW_POINTS='{}' WHERE USER_ID='{}' AND GW='{}'".format(int(gw_points)+cost, id, current_gw)
+        cursor.execute(query)
+
+        # update fpl_player
+        query = "SELECT TOTAL_POINTS FROM FPL_PLAYERS WHERE USER_ID='{}'".format(id)
         cursor.execute(query)
         total_points = dictfetchall(cursor)[0]['TOTAL_POINTS']
         query = "UPDATE FPL_PLAYERS SET BUDGET = '" + str(newBudget) + "', FREE_TRANSFERS='" + str(newFreeTransfers) + "', TOTAL_POINTS='" + str(int(total_points)+cost) + "' WHERE USER_ID='" + str(id) + "'"
@@ -196,3 +241,152 @@ def confirm_gw_team(request, id):
         cursor.execute(query)
         user = dictfetchall(cursor)
         return HttpResponse(json.dumps(user), content_type="application/json")
+
+
+        
+        # query = "SELECT USER_ID FROM GW_TEAMS WHERE USER_ID ='" + str(id) + "'"
+        # cursor.execute(query)
+        # reply = dictfetchall(cursor)
+        # if reply == []:
+        #     # New gameweek entry
+        #     query = "INSERT INTO GW_TEAMS (USER_ID, GW, GK, DEF, MID, FWD, SUBS) VALUES ('" + str(id) + "', '" + str(current_gw) + "', '" + gks.strip(",") + "', '" + defs.strip(",") + "', '" + mids.strip(",") + "', '" + fwds.strip(",") + "', '" + subs + "')"
+        #     cursor.execute(query)
+        # else:
+        #     # Updating current gameweek entry
+        #     query = "UPDATE GW_TEAMS SET GK='" + gks.strip(",") + "', DEF='" + defs.strip(",") + "', MID='" + mids.strip(",") + "', FWD='" + fwds.strip(",") + "', SUBS='" + subs + "' WHERE USER_ID='" + str(id) + "' AND GW='" + str(current_gw) + "'"
+        #     cursor.execute(query)
+        # query = "SELECT TOTAL_POINTS FROM FPL_PLAYERS WHERE USER_ID='" + str(id) + "'"
+        # cursor.execute(query)
+        # total_points = dictfetchall(cursor)[0]['TOTAL_POINTS']
+        # query = "UPDATE FPL_PLAYERS SET BUDGET = '" + str(newBudget) + "', FREE_TRANSFERS='" + str(newFreeTransfers) + "', TOTAL_POINTS='" + str(int(total_points)+cost) + "' WHERE USER_ID='" + str(id) + "'"
+        # cursor.execute(query)
+        # query = "SELECT * FROM FPL_PLAYERS WHERE USER_ID='" + str(id) + "'"
+        # cursor.execute(query)
+        # user = dictfetchall(cursor)
+        # return HttpResponse(json.dumps(user), content_type="application/json")
+
+
+def get_user_leagues(request, id):
+     with connections['fpl_db'].cursor() as cursor:
+        query = "SELECT LEAGUE_ID FROM LEAGUES_FPL_PLAYERS WHERE PLAYER_ID='{}'".format(id)
+        cursor.execute(query)
+        league_ids = dictfetchall(cursor)
+        leagues = list()
+        for league_id in league_ids:
+            query = "SELECT NAME, ADMIN, ID FROM LEAGUES WHERE ID='{}'".format(league_id['LEAGUE_ID'])
+            cursor.execute(query)
+            league = dictfetchall(cursor)
+            query = "select RANK from (SELECT PLAYER_ID, POINTS, ROW_NUMBER() OVER (ORDER BY POINTS DESC) RANK FROM LEAGUES_FPL_PLAYERS WHERE LEAGUE_ID='{}') WHERE PLAYER_ID='{}'".format(league_id['LEAGUE_ID'], id)
+            cursor.execute(query)
+            rank = dictfetchall(cursor)[0]['RANK']
+            league[0]['RANK'] = rank
+            leagues.append(league[0])
+        return HttpResponse(json.dumps(leagues), content_type="application/json")
+
+def get_league(request, id):
+    with connections['fpl_db'].cursor() as cursor:
+        query = "SELECT * FROM LEAGUES WHERE ID='{}'".format(id)
+        cursor.execute(query)
+        league = dictfetchall(cursor)[0]
+        return HttpResponse(json.dumps(league), content_type="application/json")
+    
+
+def create_league(request):
+    body = json.loads(request.body)
+    league_name = body['name']
+    admin_id = body['id']
+    with connections['fpl_db'].cursor() as cursor:
+        invite_code = str()
+        while True:
+            invite_code = generate_code(6)
+            query = "SELECT INVITE_CODE FROM LEAGUES WHERE INVITE_CODE='{}'".format(invite_code)
+            cursor.execute(query)
+            reply = dictfetchall(cursor)
+            # if no code found, exit while loop
+            if len(reply) == 0:
+                break
+        # create entry in leagues table
+        # corresponding relation with player is created using trigger in database
+        query = "INSERT INTO LEAGUES (NAME, ADMIN, INVITE_CODE) VALUES ('{}', '{}', '{}')".format(league_name, admin_id, invite_code)
+        cursor.execute(query)
+        reply = {'league_name': league_name, 'invite_code': invite_code}
+        return HttpResponse(json.dumps(reply), content_type="application/json")
+
+@csrf_exempt
+def join_league(request):
+    body = json.loads(request.body)
+    league_code = body['code']
+    player_id = body['id']
+    # check whether code is valid
+    with connections['fpl_db'].cursor() as cursor:
+        query = "SELECT * FROM LEAGUES WHERE INVITE_CODE='{}'".format(league_code)
+        cursor.execute(query)
+        reply = dictfetchall(cursor)
+        if reply == []:
+            # if code invalid
+            return HttpResponse("league not found")
+        league_id = reply[0]['ID']
+        query = "SELECT * FROM LEAGUES_FPL_PLAYERS WHERE LEAGUE_ID='{}' AND PLAYER_ID='{}'".format(league_id, player_id)
+        cursor.execute(query)
+        reply = dictfetchall(cursor)
+        if reply != []:
+            return HttpResponse('already joined')
+        query = "INSERT INTO LEAGUES_FPL_PLAYERS (LEAGUE_ID, PLAYER_ID) VALUES ('{}', '{}')".format(league_id, player_id)
+        cursor.execute(query)
+        return HttpResponse("join success")
+
+def get_league_players(request, id):
+    with connections['fpl_db'].cursor() as cursor:
+        query = "SELECT PLAYER_ID FROM LEAGUES_FPL_PLAYERS WHERE LEAGUE_ID='{}'".format(id)
+        cursor.execute(query)
+        players = dictfetchall(cursor)
+        player_list = list()
+        for player in players:
+            query = 'SELECT CURRENT_GW FROM GENERAL'
+            cursor.execute(query)
+            gw_reply = dictfetchall(cursor)
+            current_gw = int(gw_reply[0]["CURRENT_GW"])
+            query = "select FPL_PLAYERS.NAME, FPL_PLAYERS.USER_ID, FPL_PLAYERS.TEAM_NAME, GW_TEAMS.GW_POINTS, LFP.POINTS TOTAL_POINTS FROM FPL_PLAYERS JOIN GW_TEAMS ON FPL_PLAYERS.USER_ID = GW_TEAMS.USER_ID JOIN LEAGUES_FPL_PLAYERS LFP on FPL_PLAYERS.USER_ID = LFP.PLAYER_ID WHERE LFP.LEAGUE_ID='{}' AND GW_TEAMS.USER_ID='{}' AND GW_TEAMS.GW='{}'".format(id, player['PLAYER_ID'], current_gw)
+            cursor.execute(query)
+            reply = dictfetchall(cursor) 
+            player_list.append(reply[0]) 
+            
+        return HttpResponse(json.dumps(player_list), content_type="application/json") 
+
+@csrf_exempt
+def edit_league(request, id):
+    body = json.loads(request.body)
+    with connections['fpl_db'].cursor() as cursor:
+        if 'leagueName' in body.keys():
+            query = "UPDATE LEAGUES SET NAME='{}' WHERE ID='{}'".format(body['leagueName'], id)
+            cursor.execute(query)
+        
+        if 'newAdminId' in body.keys():
+            query = "UPDATE LEAGUES SET ADMIN='{}' WHERE ID='{}'".format(body['newAdminId'], id)
+            cursor.execute(query)
+            return HttpResponse("admin updated")
+
+    return HttpResponse("dummy")
+
+@csrf_exempt
+def leave_league(request, lid, pid):
+    with connections['fpl_db'].cursor() as cursor:
+        # make initial query about whether player is admin of current league or not
+        query = "SELECT ADMIN FROM LEAGUES WHERE ID='{}'".format(lid)
+        cursor.execute(query)
+        reply = dictfetchall(cursor)
+        print(reply[0]['ADMIN'])
+        if int(reply[0]['ADMIN']) == pid:
+            return HttpResponse('Player is admin of selected league and cannot be removed.')
+
+        query = "DELETE FROM LEAGUES_FPL_PLAYERS WHERE LEAGUE_ID='{}' AND PLAYER_ID='{}'".format(lid, pid)
+        cursor.execute(query)
+        return HttpResponse("user deleted", content_type="application/json")
+
+@csrf_exempt
+def delete_league(request, id):
+     with connections['fpl_db'].cursor() as cursor:
+        # make initial query about whether player is admin of current league or not
+        query = "DELETE FROM LEAGUES WHERE ID='{}'".format(id)
+        cursor.execute(query)
+        return HttpResponse("league deleted")

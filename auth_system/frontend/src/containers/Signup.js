@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { connect } from "react-redux";
 import { signup } from "../actions/auth";
+import { showError } from "../actions/errors";
 
-const Signup = ({ signup, isAuthenticated }) => {
+const Signup = ({ signup, isAuthenticated, showError }) => {
   const [accountCreated, setAccountCreated] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -104,4 +105,4 @@ const mapStateToProps = (state) => ({
   isAuthenticated: state.auth.isAuthenticated,
 });
 
-export default connect(mapStateToProps, { signup })(Signup);
+export default connect(mapStateToProps, { signup, showError })(Signup);

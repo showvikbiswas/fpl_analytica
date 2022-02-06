@@ -21,15 +21,21 @@ export const loadGWTeam = (userProfile) => async (dispatch) => {
       `${process.env.REACT_APP_API_URL}/api/current_gw_team/${userProfile.USER_ID}/`,
       config
     );
-
-    const team = res.data;
+    const team = res.data.team;
     const id = userProfile.USER_ID;
 
-    dispatch({
-      type: GW_TEAM_LOADED_SUCCESS,
-      payload: team,
-    });
-
+    if (res.data.length === 0) {
+      const newPayload = [];
+      dispatch({
+        type: GW_TEAM_LOADED_SUCCESS,
+        payload: newPayload,
+      });
+    } else {
+      dispatch({
+        type: GW_TEAM_LOADED_SUCCESS,
+        payload: team,
+      });
+    }
     dispatch({
       type: GW_BUDGET_UPDATED,
       payload: userProfile.BUDGET,

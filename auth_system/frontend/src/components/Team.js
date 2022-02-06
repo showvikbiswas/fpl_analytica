@@ -283,11 +283,13 @@ const Team = ({
               if (player.ELEMENT_TYPE == "GK") {
                 return (
                   <tr>
-                    <th scope="row">{player.FULLNAME}</th>
-                    <td>{player.TEAM}</td>
-                    <td>{player.NOW_COST}</td>
-                    <td>{player.TOTAL_POINTS}</td>
-                    <td>
+                    <th scope="row" style={{ width: "30%" }}>
+                      {player.FULLNAME}
+                    </th>
+                    <td style={{ width: "20%" }}>{player.TEAM}</td>
+                    <td style={{ width: "10%" }}>{player.NOW_COST}</td>
+                    <td style={{ width: "10%" }}>{player.TOTAL_POINTS}</td>
+                    <td style={{ width: "20%" }}>
                       <button
                         type="button"
                         className="btn btn-primary"
@@ -323,11 +325,13 @@ const Team = ({
               if (player.ELEMENT_TYPE == "DEF") {
                 return (
                   <tr>
-                    <th scope="row">{player.FULLNAME}</th>
-                    <td>{player.TEAM}</td>
-                    <td>{player.NOW_COST}</td>
-                    <td>{player.TOTAL_POINTS}</td>
-                    <td>
+                    <th scope="row" style={{ width: "30%" }}>
+                      {player.FULLNAME}
+                    </th>
+                    <td style={{ width: "20%" }}>{player.TEAM}</td>
+                    <td style={{ width: "10%" }}>{player.NOW_COST}</td>
+                    <td style={{ width: "10%" }}>{player.TOTAL_POINTS}</td>
+                    <td style={{ width: "20%" }}>
                       <button
                         type="button"
                         className="btn btn-primary"
@@ -363,11 +367,13 @@ const Team = ({
               if (player.ELEMENT_TYPE == "MID") {
                 return (
                   <tr>
-                    <th scope="row">{player.FULLNAME}</th>
-                    <td>{player.TEAM}</td>
-                    <td>{player.NOW_COST}</td>
-                    <td>{player.TOTAL_POINTS}</td>
-                    <td>
+                    <th scope="row" style={{ width: "30%" }}>
+                      {player.FULLNAME}
+                    </th>
+                    <td style={{ width: "20%" }}>{player.TEAM}</td>
+                    <td style={{ width: "10%" }}>{player.NOW_COST}</td>
+                    <td style={{ width: "10%" }}>{player.TOTAL_POINTS}</td>
+                    <td style={{ width: "20%" }}>
                       <button
                         type="button"
                         className="btn btn-primary"
@@ -403,11 +409,13 @@ const Team = ({
               if (player.ELEMENT_TYPE == "FWD") {
                 return (
                   <tr>
-                    <th scope="row">{player.FULLNAME}</th>
-                    <td>{player.TEAM}</td>
-                    <td>{player.NOW_COST}</td>
-                    <td>{player.TOTAL_POINTS}</td>
-                    <td>
+                    <th scope="row" style={{ width: "30%" }}>
+                      {player.FULLNAME}
+                    </th>
+                    <td style={{ width: "20%" }}>{player.TEAM}</td>
+                    <td style={{ width: "10%" }}>{player.NOW_COST}</td>
+                    <td style={{ width: "10%" }}>{player.TOTAL_POINTS}</td>
+                    <td style={{ width: "20%" }}>
                       <button
                         type="button"
                         className="btn btn-primary"

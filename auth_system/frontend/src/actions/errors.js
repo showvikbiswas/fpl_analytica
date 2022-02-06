@@ -1,6 +1,7 @@
 import { GET_ERRORS, SWITCH_ERROR_OFF } from "./types";
 
 export const showError = (msg) => (dispatch) => {
+  console.log(msg);
   dispatch({
     type: GET_ERRORS,
     payload: msg,

@@ -20,6 +20,16 @@ urlpatterns = [
    path('current_gw_team/<int:id>/', views.get_current_gw_team, name='get_current_gw_team'),
    path('confirm_gw_team/<int:id>/', views.confirm_gw_team, name='confirm_gw_team'),
 
+   # League APIs
+   path('leagues/user/<int:id>/', views.get_user_leagues, name='get_user_leagues'),
+   path('leagues/league/<int:id>/', views.get_league, name='get_league'),
+   path('leagues/create/', views.create_league, name='create_league'),
+   path('leagues/join/', views.join_league, name='join_league'),
+   path('leagues/players/<int:id>/', views.get_league_players, name='get_league_players'),
+   path('leagues/edit/<int:id>/', views.edit_league, name='edit_league'),
+   path('leagues/<int:lid>/leave/<int:pid>/', views.leave_league, name='leave_league'),
+   path('leagues/delete/<int:id>/', views.delete_league, name='delete_league'),
+
    # Test APIs
    path('test/', views.test, name='test')
 ]
