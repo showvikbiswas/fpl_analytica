@@ -14,6 +14,9 @@ urlpatterns = [
    # Player APIs
    path('players/', views.get_players, name='get_players'),
    path('players/<int:id>/', views.get_player, name='get_player'),
+
+   # Player Stats API
+   path('stats/player/<int:id>/', views.get_player_stats, name='get_stats'),
    
 
    # FPL Gameweek APIs

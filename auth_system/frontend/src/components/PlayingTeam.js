@@ -169,6 +169,8 @@ const PlayingTeam = ({
       newCaptain,
       newViceCaptain
     );
+
+    window.location.reload(false);
   };
 
   return (
@@ -180,6 +182,7 @@ const PlayingTeam = ({
           <table className="table">
             <thead className="thead-dark">
               <tr>
+                <th scope="col" style={{ width: "10%" }}></th>
                 <th scope="col">Player</th>
                 <th scope="col">Club</th>
                 <th scope="col">Position</th>
@@ -232,6 +235,7 @@ const PlayingTeam = ({
           <table className="table">
             <thead className="thead-dark">
               <tr>
+                <th scope="col" style={{ width: "10%" }}></th>
                 <th scope="col">Player</th>
                 <th scope="col">Club</th>
                 <th scope="col">Position</th>
@@ -248,6 +252,7 @@ const PlayingTeam = ({
                       selected={selectedSub}
                       onSwitch={subHandler}
                       player={player}
+                      sub={true}
                     />
                     // <tr
                     //   style={

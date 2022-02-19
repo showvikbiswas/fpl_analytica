@@ -1,3 +1,4 @@
+from operator import truediv
 from urllib.request import HTTPErrorProcessor
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -75,22 +76,30 @@ def get_teams(request):
         return HttpResponse(json.dumps(user), content_type="application/json")
 
 def get_players(request):
-    query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, PLAYER_ID, TOTAL_POINTS, TEAM FROM PLAYERS"
-    param_list = list(request.GET.items())
-    query_length = len(param_list)
-    if (query_length >= 1):
-        query += " WHERE "
-    i = 0
-    for (key, value) in param_list:
-        query += key + "='" + value + "'"
-        if (query_length - i > 1):
-            query += " AND "
-        i = i+1
-    print(query)
     with connections['fpl_db'].cursor() as cursor:
+        query = "SELECT CURRENT_GW FROM GENERAL"
         cursor.execute(query)
-        user = dictfetchall(cursor)
-        return HttpResponse(json.dumps(user), content_type="application/json")
+        current_gw = dictfetchall(cursor)[0]
+        query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, PLAYER_ID, TOTAL_POINTS, TEAM FROM PLAYERS"
+        param_list = list(request.GET.items())
+        query_length = len(param_list)
+        if (query_length >= 1):
+            query += " WHERE "
+        i = 0
+        for (key, value) in param_list:
+            query += key + "='" + value + "'"
+            if (query_length - i > 1):
+                query += " AND "
+            i = i+1
+        print(query)    
+        cursor.execute(query)
+        players = dictfetchall(cursor)
+        for player in players:
+            query = "SELECT GW_PRICE FROM PLAYER_STATS WHERE GW={} AND PLAYER_ID={}".format(current_gw, player['PLAYER_ID'])
+            cursor.execute(query)
+            gw_price = dictfetchall(cursor)[0]
+            player['NOW_COST'] = gw_price
+        return HttpResponse(json.dumps(players), content_type="application/json")
 
 def get_player(request, id):
     query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, NOW_COST, TOTAL_POINTS FROM PLAYERS WHERE PLAYER_ID='" + str(id) + "'"
@@ -415,7 +424,7 @@ def confirm_playing_team(request, id):
     print(vice_captain)
     with connections['fpl_db'].cursor() as cursor:
         for player in team:
-            query = "UPDATE GW_TEAMS_PLAYERS SET IS_STARTING='"+str(player['IS_STARTING']) + "'" + " WHERE USER_ID='" + str(id) + "'" + " AND GW = (SELECT MAX(GW) FROM GW_TEAMS)" + " AND PLAYER_ID ='"+str(player['PLAYER_ID'])+ "'"
+            query = "UPDATE GW_TEAMS_PLAYERS SET IS_STARTING='"+str(player['IS_STARTING']) + "'" + " WHERE FPL_PLAYER_ID='" + str(id) + "'" + " AND GW = (SELECT MAX(GW) FROM GW_TEAMS)" + " AND PLAYER_ID ='"+str(player['PLAYER_ID'])+ "'"
             cursor.execute(query)
     with connections['fpl_db'].cursor() as cursor:
             query = "UPDATE  GW_TEAMS SET CAPTAIN='"+str(captain)+"'"+ " WHERE USER_ID='" + str(id) + "'" + " AND GW = (SELECT MAX(GW) FROM GW_TEAMS)"
@@ -446,4 +455,21 @@ def get_fixtures(request):
         }
     print("fixtures",data)
     return HttpResponse(json.dumps(data), content_type="application/json")
+
+# Players API
+def get_player_stats(request, id):
+    with connections['fpl_db'].cursor() as cursor:
+        query = "SELECT * FROM PLAYER_STATS WHERE PLAYER_ID={} ORDER BY GW".format(id)
+        cursor.execute(query)
+        data = dictfetchall(cursor)
+        print(data[0])
+        for item in data:
+            query = "select MATCH_ID, HOME_TEAM_SCORE, AWAY_TEAM_SCORE, T1.SHORT_NAME HOME_TEAM_NAME, T2.SHORT_NAME AWAY_TEAM_NAME from FIXTURES join TEAMS T1 on FIXTURES.HOME_TEAM = T1.ID join TEAMS T2 ON FIXTURES.AWAY_TEAM = T2.ID WHERE MATCH_ID={}".format(item['FIXTURE'])
+            cursor.execute(query)
+            reply = dictfetchall(cursor)
+            if item['WAS_HOME'] == 'TRUE':
+                item['OPPONENT_TEAM'] = "{} (H) {} - {}".format(reply[0]['AWAY_TEAM_NAME'], reply[0]["HOME_TEAM_SCORE"], reply[0]["AWAY_TEAM_SCORE"])
+            else:
+                item['OPPONENT_TEAM'] = "{} (A) {} - {}".format(reply[0]['HOME_TEAM_NAME'], reply[0]["AWAY_TEAM_SCORE"], reply[0]["HOME_TEAM_SCORE"])
+        return HttpResponse(json.dumps(data, default=str), content_type="application/json")
 

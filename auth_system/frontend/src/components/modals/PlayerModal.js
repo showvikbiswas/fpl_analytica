@@ -1,7 +1,30 @@
 import React from "react";
 import { Fragment } from "react";
+import { connect } from "react-redux";
+import { changeCaptain } from "../../actions/gameweek";
+import { changeViceCaptain } from "../../actions/gameweek";
+import PlayerInfoModal from "./PlayerInfoModal";
 
-const PlayerModal = ({ selected, onSwitch, player }) => {
+const PlayerModal = ({
+  selected,
+  onSwitch,
+  player,
+  changeCaptain,
+  changeViceCaptain,
+  newCaptain,
+  newViceCaptain,
+  sub,
+}) => {
+  const captainOrVice = (id) => {
+    if (player.PLAYER_ID === newCaptain) {
+      return "C";
+    } else if (player.PLAYER_ID === newViceCaptain) {
+      return "V";
+    } else {
+      return "";
+    }
+  };
+
   return (
     <Fragment>
       <tr
@@ -13,6 +36,7 @@ const PlayerModal = ({ selected, onSwitch, player }) => {
             : { background: "white" }
         }
       >
+        <td>{captainOrVice(player.PLAYER_ID)}</td>
         <td>{player.FULLNAME}</td>
         <td>{player.TEAM}</td>
         <td>{player.ELEMENT_TYPE}</td>
@@ -64,11 +88,31 @@ const PlayerModal = ({ selected, onSwitch, player }) => {
                 >
                   Switch
                 </button>
-                <button className="btn btn-primary" data-bs-dismiss="modal">
-                  Make Captain
-                </button>
-                <button className="btn btn-primary" data-bs-dismiss="modal">
-                  Make Vice Captain
+                {!sub && (
+                  <Fragment>
+                    <button
+                      className="btn btn-primary"
+                      data-bs-dismiss="modal"
+                      onClick={(e) => changeCaptain(player.PLAYER_ID)}
+                    >
+                      Make Captain
+                    </button>
+                    <button
+                      className="btn btn-primary"
+                      data-bs-dismiss="modal"
+                      onClick={(e) => changeViceCaptain(player.PLAYER_ID)}
+                    >
+                      Make Vice Captain
+                    </button>
+                  </Fragment>
+                )}
+                <button
+                  className="btn btn-primary"
+                  data-bs-dismiss="modal"
+                  data-bs-toggle="modal"
+                  data-bs-target={`#playerInfoModal${player.PLAYER_ID}`}
+                >
+                  View Information
                 </button>
               </div>
             </div>
@@ -87,8 +131,56 @@ const PlayerModal = ({ selected, onSwitch, player }) => {
           </div>
         </div>
       </div>
+      <div
+        class="modal fade"
+        id={`playerInfoModal${player.PLAYER_ID}`}
+        aria-hidden="true"
+        aria-labelledby={`playerInfoModalLabel${player.PLAYER_ID}`}
+        tabindex="-1"
+      >
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalToggleLabel2">
+                Premier League
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <PlayerInfoModal player={player} />
+            </div>
+            <div class="modal-footer">
+              <button
+                class="btn btn-primary"
+                data-bs-target="#exampleModalToggle"
+                data-bs-toggle="modal"
+                data-bs-dismiss="modal"
+              >
+                Back to first
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </Fragment>
   );
 };
 
-export default PlayerModal;
+const mapStateToProps = (state) => ({
+  isAuthenticated: state.auth.isAuthenticated,
+  user: state.auth.user,
+  userProfile: state.user.user,
+  team: state.gameweek.team,
+  newTeam: state.gameweek.newTeam,
+  newCaptain: state.gameweek.newCaptain,
+  newViceCaptain: state.gameweek.newViceCaptain,
+});
+
+export default connect(mapStateToProps, { changeCaptain, changeViceCaptain })(
+  PlayerModal
+);

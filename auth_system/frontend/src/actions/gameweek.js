@@ -17,6 +17,7 @@ import {
 } from "./types";
 
 export const loadGWTeam = (userProfile) => async (dispatch) => {
+  console.log("HELLO");
   const config = {
     headers: {
       "Content-Type": "application/json",
@@ -29,28 +30,40 @@ export const loadGWTeam = (userProfile) => async (dispatch) => {
       config
     );
 
-    const team = res.data.team;
-    const subs = res.data.subs;
-    const captain = res.data.captain;
-    const viceCaptain = res.data.vice_captain;
-    const playingTeam = team.filter(
-      (elem) => !subs.find(({ PLAYER_ID }) => elem.PLAYER_ID === PLAYER_ID)
-    );
+    if (res.data.length === 0) {
+      const team = [];
+      const subs = [];
+      const captain = null;
+      const viceCaptain = null;
+      const playingTeam = null;
+      dispatch({
+        type: GW_TEAM_LOADED_SUCCESS,
+        payload: { team, playingTeam, subs, captain, viceCaptain },
+      });
+    } else {
+      const team = res.data.team;
+      const subs = res.data.subs;
+      const captain = res.data.captain;
+      const viceCaptain = res.data.vice_captain;
+      const playingTeam = team.filter(
+        (elem) => !subs.find(({ PLAYER_ID }) => elem.PLAYER_ID === PLAYER_ID)
+      );
 
-    console.log("team\n");
-    console.log(team);
-    console.log("playing team\n");
-    console.log(playingTeam);
-    console.log(subs);
-    console.log(captain);
-    console.log(viceCaptain);
+      console.log("team\n");
+      console.log(team);
+      console.log("playing team\n");
+      console.log(playingTeam);
+      console.log(subs);
+      console.log(captain);
+      console.log(viceCaptain);
 
-    const id = userProfile.USER_ID;
+      const id = userProfile.USER_ID;
 
-    dispatch({
-      type: GW_TEAM_LOADED_SUCCESS,
-      payload: { team, playingTeam, subs, captain, viceCaptain },
-    });
+      dispatch({
+        type: GW_TEAM_LOADED_SUCCESS,
+        payload: { team, playingTeam, subs, captain, viceCaptain },
+      });
+    }
 
     dispatch({
       type: GW_BUDGET_UPDATED,
