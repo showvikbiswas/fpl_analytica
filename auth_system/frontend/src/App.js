@@ -13,6 +13,7 @@ import PickTeam from "./containers/PickTeam";
 import CreateProfile from "./containers/CreateProfile";
 import PrivateRoute from "./hocs/PrivateRoute";
 import Transfers from "./containers/Transfers";
+import Points from "./containers/Points";
 import Leagues from "./containers/Leagues";
 import CreateLeague from "./containers/CreateLeague";
 import InviteToLeague from "./containers/InviteToLeague";
@@ -20,10 +21,12 @@ import JoinLeague from "./containers/JoinLeague";
 import Alerts from "./components/Alerts";
 import Standings from "./containers/Standings";
 import ManageLeague from "./containers/ManageLeague";
+import top from "./top.png";
 
 const App = () => {
   return (
     <Provider store={store}>
+      <img src={top} alt="top"></img>
       <BrowserRouter>
         <Alerts />
         <Layout>
@@ -40,6 +43,7 @@ const App = () => {
             <Route path="/activate/:uid/:token" element={<Activate />} />
             <Route path="/my-team" element={<PickTeam />} />
             <Route path="/transfers" element={<Transfers />} />
+            <Route path="/points" element={<Points />} />
             <Route path="/leagues" element={<Leagues />} />
             <Route path="/leagues/create" element={<CreateLeague />} />
             <Route path="/leagues/:lid/invite" element={<InviteToLeague />} />

@@ -36,6 +36,7 @@ const PlayerSelection = ({
           `${process.env.REACT_APP_API_URL}/api/players/`,
           config
         );
+        console.log(res.data);
         setPlayers(res.data);
       } catch (err) {
         console.log(err);

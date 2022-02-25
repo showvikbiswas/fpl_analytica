@@ -32,7 +32,9 @@ const PlayerInfoModal = ({ player }) => {
     <Fragment>
       <h3>{player.FULLNAME}</h3>
       <h4>{player.ELEMENT_TYPE}</h4>
-      <div className="container"></div>
+      <div className="container">
+        <div className="d-flex justify-content-center"></div>
+      </div>
       <h5>This Season</h5>
 
       <table class="table">

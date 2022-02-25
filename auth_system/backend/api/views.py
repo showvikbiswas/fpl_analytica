@@ -77,10 +77,12 @@ def get_teams(request):
 
 def get_players(request):
     with connections['fpl_db'].cursor() as cursor:
-        query = "SELECT CURRENT_GW FROM GENERAL"
+        query = "SELECT MAX(GW) GAMEWEEK FROM GAMEWEEK WHERE HAS_STARTED = 'Y'"
         cursor.execute(query)
-        current_gw = dictfetchall(cursor)[0]
-        query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, PLAYER_ID, TOTAL_POINTS, TEAM FROM PLAYERS"
+        reply = dictfetchall(cursor)
+        print(reply)
+        current_gw = reply[0]['GAMEWEEK']
+        query = "SELECT FIRST_NAME || ' ' || SECOND_NAME FULLNAME, ELEMENT_TYPE, PLAYER_ID, TOTAL_POINTS, NOW_COST, TEAM FROM PLAYERS"
         param_list = list(request.GET.items())
         query_length = len(param_list)
         if (query_length >= 1):
@@ -91,14 +93,18 @@ def get_players(request):
             if (query_length - i > 1):
                 query += " AND "
             i = i+1
-        print(query)    
+        print(query)
+        
         cursor.execute(query)
         players = dictfetchall(cursor)
         for player in players:
+            print(player['PLAYER_ID'])
             query = "SELECT GW_PRICE FROM PLAYER_STATS WHERE GW={} AND PLAYER_ID={}".format(current_gw, player['PLAYER_ID'])
             cursor.execute(query)
-            gw_price = dictfetchall(cursor)[0]
-            player['NOW_COST'] = gw_price
+            reply = dictfetchall(cursor) 
+            if(len(reply) != 0):
+                gw_price = reply[0]
+                player['NOW_COST'] = gw_price['GW_PRICE']
         return HttpResponse(json.dumps(players), content_type="application/json")
 
 def get_player(request, id):
@@ -149,16 +155,16 @@ def get_current_gw_team(request, id):
             }
             return HttpResponse(json.dumps(data), content_type="application/json") # your code goes here
             
-def get_points(request, id, gw):
-     with connections['fpl_db'].cursor() as cursor:
-        query = "SELECT PLAYER_ID FROM GW_TEAMS_PLAYERS WHERE USER_ID='" + str(id) + "'" + " AND GW = SELECT MAX(GW) GAMEWEEK FROM FIXTURES WHERE FINISHED = 'TRUE'"
-        cursor.execute(query)
-        reply = dictfetchall(cursor)
-        player_list = list()
-        for player in reply:
-                query = "SELECT NAME, PLAYER_ID, TEAM, TOTAL_POINTS POINTS FROM PLAYER_STATS WHERE PLAYER_ID='"+str(player.PLAYER_ID)+"'"+ " AND GW = (SELECT MAX(GW) GAMEWEEK FROM FIXTURES WHERE FINISHED = 'TRUE')"
-                cursor.execute(query)
-                reply = dictfetchall(cursor)
+# def get_points(request, id, gw):
+#      with connections['fpl_db'].cursor() as cursor:
+#         query = "SELECT PLAYER_ID FROM GW_TEAMS_PLAYERS WHERE USER_ID='" + str(id) + "'" + " AND GW = SELECT MAX(GW) GAMEWEEK FROM FIXTURES WHERE FINISHED = 'TRUE'"
+#         cursor.execute(query)
+#         reply = dictfetchall(cursor)
+#         player_list = list()
+#         for player in reply:
+#                 query = "SELECT NAME, PLAYER_ID, TEAM, TOTAL_POINTS POINTS FROM PLAYER_STATS WHERE PLAYER_ID='"+str(player.PLAYER_ID)+"'"+ " AND GW = (SELECT MAX(GW) GAMEWEEK FROM FIXTURES WHERE FINISHED = 'TRUE')"
+#                 cursor.execute(query)
+#                 reply = dictfetchall(cursor)
         
         
 
@@ -174,10 +180,10 @@ def confirm_gw_team(request, id):
     if (newFreeTransfers < 0):
         newFreeTransfers = 0
     with connections['fpl_db'].cursor() as cursor:
-        query = 'SELECT CURRENT_GW FROM GENERAL'
+        query = "select MAX(GW) from GAMEWEEK where HAS_STARTED='Y'"
         cursor.execute(query)
         reply = dictfetchall(cursor)
-        current_gw = int(reply[0]["CURRENT_GW"])
+        current_gw = int(reply[0]["MAX(GW)"])
 
         # populate gw_teams
         # check whether there is a team made or not
@@ -364,13 +370,16 @@ def get_league_players(request, id):
         players = dictfetchall(cursor)
         player_list = list()
         for player in players:
-            query = 'SELECT CURRENT_GW FROM GENERAL'
+            query = "SELECT MAX(GW) GAMEWEEK FROM GAMEWEEK WHERE HAS_STARTED = 'Y'"
             cursor.execute(query)
             gw_reply = dictfetchall(cursor)
-            current_gw = int(gw_reply[0]["CURRENT_GW"])
+            current_gw = int(gw_reply[0]["GAMEWEEK"])
             query = "select FPL_PLAYERS.NAME, FPL_PLAYERS.USER_ID, FPL_PLAYERS.TEAM_NAME, GW_TEAMS.GW_POINTS, LFP.POINTS TOTAL_POINTS FROM FPL_PLAYERS JOIN GW_TEAMS ON FPL_PLAYERS.USER_ID = GW_TEAMS.USER_ID JOIN LEAGUES_FPL_PLAYERS LFP on FPL_PLAYERS.USER_ID = LFP.PLAYER_ID WHERE LFP.LEAGUE_ID='{}' AND GW_TEAMS.USER_ID='{}' AND GW_TEAMS.GW='{}'".format(id, player['PLAYER_ID'], current_gw)
+            print("QUERY: " + query)
             cursor.execute(query)
             reply = dictfetchall(cursor) 
+            print("REPLY: ")
+            print(reply)
             player_list.append(reply[0]) 
             
         return HttpResponse(json.dumps(player_list), content_type="application/json") 
@@ -437,7 +446,7 @@ def confirm_playing_team(request, id):
 def get_fixtures(request):                    
     with connections['fpl_db'].cursor() as cursor:
         query = """SELECT T1.NAME H_TEAM, T2.NAME A_TEAM FROM (SELECT HOME_TEAM, AWAY_TEAM FROM FIXTURES 
-                    WHERE GW = (SELECT MAX(GW)+1 FROM FIXTURES WHERE FINISHED = 'TRUE') ) F
+                    WHERE GW = (SELECT MAX(GW)+1 FROM GAMEWEEK WHERE HAS_FINISHED = 'Y') ) F
                     JOIN TEAMS T1
                     ON ( T1.ID = F.HOME_TEAM)
                     JOIN TEAMS T2
@@ -472,4 +481,97 @@ def get_player_stats(request, id):
             else:
                 item['OPPONENT_TEAM'] = "{} (A) {} - {}".format(reply[0]['HOME_TEAM_NAME'], reply[0]["AWAY_TEAM_SCORE"], reply[0]["HOME_TEAM_SCORE"])
         return HttpResponse(json.dumps(data, default=str), content_type="application/json")
+
+
+def make_player_data(name, team, position):
+    player_dict ={'NAME':name, 'TEAM':team, 'POSITION':position, 'PLAYED':0, 'MINUTES':0, 'POINTS':0, 'GOALS':0, 'ASSISTS':0,
+                'CS':0, 'YELLOW':0, 'RED':0, 'BONUS':0, 'PENALTIES_MISSED':0, 'PENALTIES_SAVED':0}
+    return player_dict
+
+def get_points(request, id):
+     with connections['fpl_db'].cursor() as cursor:
+        query = "SELECT MAX(GW) GAMEWEEK FROM GAMEWEEK WHERE HAS_FINISHED = 'Y'"                              
+        cursor.execute(query)
+        reply = dictfetchall(cursor)
+        gw = reply[0]['GAMEWEEK']
+        query = "SELECT CAPTAIN, VICE_CAPTAIN, GW_POINTS FROM GW_TEAMS WHERE USER_ID='" + str(id) + "'" + " AND GW = '"+str(gw)+"'"
+        cursor.execute(query)
+        reply = dictfetchall(cursor)
+        print(reply[0])
+        CAPTAIN = reply[0]['CAPTAIN']
+        VICE_CAPTAIN = reply[0]['VICE_CAPTAIN']
+        GW_POINTS = reply[0]['GW_POINTS']
+        print(reply)
+        query = """SELECT G.PLAYER_ID, G.IS_STARTING, (P.FIRST_NAME||' '|| P.SECOND_NAME) NAME, P.TEAM, P.ELEMENT_TYPE POSITION
+                FROM (SELECT PLAYER_ID, IS_STARTING FROM GW_TEAMS_PLAYERS WHERE FPL_PLAYER_ID='{}' AND GW = '{}') G JOIN  PLAYERS P
+                ON (G.PLAYER_ID = P.PLAYER_ID)
+                ORDER BY IS_STARTING DESC, CASE 
+                    WHEN POSITION = 'GK' THEN 1
+                    WHEN POSITION = 'DEF' THEN 2
+                    WHEN POSITION = 'MID' THEN 3
+                    ELSE 4 END;""".format(id, gw)
+        cursor.execute(query)
+        reply = dictfetchall(cursor)
+        print(reply)
+        starter_list = list()
+        subs_list = list()
+        count = 0
+        for player in reply:
+                query = """SELECT NAME, TEAM, POSITION, COUNT(*) PLAYED, SUM(MINUTES) MINUTES, SUM(TOTAL_POINTS) POINTS, SUM(GOALS_SCORED) GOALS,
+                    SUM(ASSISTS) ASSISTS, SUM(CLEAN_SHEETS) CS, SUM(YELLOW_CARD) YELLOW, SUM(RED_CARDS) RED, SUM(BONUS) BONUS, 
+                    SUM(PENALTIES_MISSED) PENALTIES_MISSED, SUM(PENALTIES_SAVED) PENALTIES_SAVED
+                    FROM PLAYER_STATS
+                    WHERE PLAYER_ID = '{}' AND GW = '{}' GROUP BY PLAYER_ID, NAME, TEAM, POSITION""".format(player['PLAYER_ID'], gw)
+                cursor.execute(query)
+                reply = dictfetchall(cursor)
+                print("S/n",reply)
+                count = count + 1
+                if reply == []:
+                    player_dict = make_player_data(player['NAME'], player['TEAM'], player['POSITION'])
+                    if count < 12:
+                        starter_list.append(player_dict)
+                    else:
+                        subs_list.append(player_dict)
+                else:
+                    if player['PLAYER_ID'] == CAPTAIN:
+                        reply[0]['POINTS'] = 2 * reply[0]['POINTS']
+                    if count < 12:
+                        starter_list.append(reply[0])
+                    else:
+                        subs_list.append(reply[0])
+
+        
+        data = {
+                "gameweek": gw,
+                "starter_points": starter_list,
+                "subs_points": subs_list,
+                "captain": CAPTAIN,
+                "vice_captain": VICE_CAPTAIN,
+                "gw_points": GW_POINTS,
+            }
+        print(data)
+        return HttpResponse(json.dumps(data), content_type="application/json")
+
+
+def get_results(request):                    
+    with connections['fpl_db'].cursor() as cursor:
+        query = "SELECT MAX(GW) GAMEWEEK FROM GAMEWEEK WHERE HAS_FINISHED = 'Y'"                              
+        cursor.execute(query)
+        reply = dictfetchall(cursor)
+        gameweek = reply[0]['GAMEWEEK']
+        query = """SELECT T1.NAME H_TEAM, F.HOME_TEAM_SCORE H_TEAM_SCORE, T2.NAME A_TEAM , F.AWAY_TEAM_SCORE A_TEAM_SCORE
+                    FROM (SELECT HOME_TEAM, HOME_TEAM_SCORE, AWAY_TEAM, AWAY_TEAM_SCORE FROM FIXTURES 
+                    WHERE GW = '{}' ) F
+                    JOIN TEAMS T1
+                    ON ( T1.ID = F.HOME_TEAM)
+                    JOIN TEAMS T2
+                    ON ( T2.ID = F.AWAY_TEAM)""".format(gameweek)
+        cursor.execute(query)
+        results = dictfetchall(cursor)
+    data = {
+             "results": results,
+             "gameweek": gameweek,
+        }
+    print("fixtures",data)
+    return HttpResponse(json.dumps(data), content_type="application/json")
 

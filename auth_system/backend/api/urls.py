@@ -23,7 +23,7 @@ urlpatterns = [
    path('current_gw_team/<int:id>/', views.get_current_gw_team, name='get_current_gw_team'),
    path('confirm_gw_team/<int:id>/', views.confirm_gw_team, name='confirm_gw_team'),
    path('confirm_playing_team/<int:id>/', views.confirm_playing_team, name='confirm_playing_team'),
-   path('points/<int:id>/<int:gw>', views.get_points, name='get_points'),
+   path('points/<int:id>/', views.get_points, name='get_points'),
 
    # League APIs
    path('leagues/user/<int:id>/', views.get_user_leagues, name='get_user_leagues'),
@@ -37,6 +37,7 @@ urlpatterns = [
 
    # Fixture APIs
    path('fixtures/', views.get_fixtures, name='get_fixtures'),
+   path('results/', views.get_results, name='get_results'),
 
    # Test APIs
    path('test/', views.test, name='test')
